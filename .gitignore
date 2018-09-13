@@ -8,3 +8,5 @@ build/
 # secp256k1 local library and build
 secp256k1/
 _secp256k1*
+
+.pytest_cache/

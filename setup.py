@@ -1,15 +1,15 @@
 import setuptools
 
 setuptools.setup(
-    name='libsecp256k1-py',
+    name='pysecp256k1',
     version="0.0.1",
     author="RJ Rybarczyk",
     author_email="rj64@protonmail.com",
-    description="Python implementation of secp256k1 bitcoin-core library.",
+    description="Python ffi bindings to secp256k1 bitcoin-core library.",
     packages=setuptools.find_packages(),
     install_requires=['cffi>=1.11.5'],
     setup_requires=['cffi>=1.11.5'],
-    package_dir={'libsecp256k1_py': 'libsecp256k1_py'},
+    package_dir={'pysecp256k1': 'pysecp256k1'},
     ext_package="secp256k1",
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -17,10 +17,3 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
 )
-#
-#  setuptools.setup(
-#      name='libsecp256k1-py',
-#      version="0.0.1",
-#      packages=setuptools.find_packages(),
-#      package_data={
-#  )

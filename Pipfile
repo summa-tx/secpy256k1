@@ -5,7 +5,9 @@ name = "pypi"
 
 [packages]
 cffi = ">=1.11.5"
-"libsecp256k1-py" = {editable = true, path = "."}
+"pysecp256k1" = {editable = true, path = "."}
+pytest = "*"
+"flake8" = "*"
 
 [dev-packages]
 
