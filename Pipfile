@@ -5,11 +5,9 @@ name = "pypi"
 
 [packages]
 cffi = ">=1.11.5"
+"libsecp256k1-py" = {editable = true, path = "."}
 
 [dev-packages]
 
 [requires]
 python_version = "3.7"
-
-[packages]
-libsecp256k1-py = {editable = true, path = "." }

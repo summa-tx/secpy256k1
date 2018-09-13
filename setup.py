@@ -10,10 +10,17 @@ setuptools.setup(
     install_requires=['cffi>=1.11.5'],
     setup_requires=['cffi>=1.11.5'],
     package_dir={'libsecp256k1_py': 'libsecp256k1_py'},
-    cffi_modules=["build.py:ffibuilder"],
+    ext_package="secp256k1",
     classifiers=[
-	"Programming Language :: Python :: 3",
-	"License :: OSI Approved :: MIT License",
-	"Operating System :: OS Independent",
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
 )
+#
+#  setuptools.setup(
+#      name='libsecp256k1-py',
+#      version="0.0.1",
+#      packages=setuptools.find_packages(),
+#      package_data={
+#  )

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f7832fdf916108bf2c14e1f41d9b5082fe66fe374a2ef46a067e2f80f071afe4"
+            "sha256": "214f982f1c6d5cfb8380bcf83aa89e7d5907316bc512709775309b2d2b8334b3"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -53,6 +53,10 @@
             ],
             "index": "pypi",
             "version": "==1.11.5"
+        },
+        "libsecp256k1-py": {
+            "editable": true,
+            "path": "."
         },
         "pycparser": {
             "hashes": [

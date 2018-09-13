@@ -1,8 +1,10 @@
 __pycache__/
 dist/
+build/
+.eggs/
 *.pyc
 *.egg-info
 
 # secp256k1 local library and build
 secp256k1/
-_libsecp256k1*
+_secp256k1*
