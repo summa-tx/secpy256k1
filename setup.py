@@ -11,6 +11,9 @@ setuptools.setup(
     install_requires=['cffi>=1.11.5'],
     setup_requires=['cffi>=1.11.5'],
     package_dir={'pysecp256k1': 'pysecp256k1'},
+    package_data={
+        'pysecp256k1': ['pysecp256k1/secp256k1_build/secp256k1_headers/secp256k1.h']
+    },
     ext_package="secp256k1",
     classifiers=[
         "Programming Language :: Python :: 3",
