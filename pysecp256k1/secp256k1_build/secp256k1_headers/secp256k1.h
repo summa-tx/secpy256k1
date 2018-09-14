@@ -44,6 +44,10 @@ typedef struct { unsigned char data[64]; } secp256k1_ecdsa_signature;
 #define SECP256K1_CONTEXT_SIGN ...
 #define SECP256K1_CONTEXT_NONE ...
 
+/** Flag to pass to secp256k1_ec_pubkey_serialize and secp256k1_ec_privkey_export. */
+#define SECP256K1_EC_COMPRESSED ...
+#define SECP256K1_EC_UNCOMPRESSED ...
+
 /** Create a secp256k1 context object.
  *
  *  Returns: a newly created context object.
@@ -60,26 +64,22 @@ secp256k1_context* secp256k1_context_create(unsigned int flags);
  */
 void secp256k1_context_destroy(secp256k1_context* ctx);
 
-/** Serialize a pubkey object into a serialized byte sequence.
+/** Parse a variable-length public key into the pubkey object.
  *
- *  Returns: 1 always.
- *  Args:   ctx:        a secp256k1 context object.
- *  Out:    output:     a pointer to a 65-byte (if compressed==0) or 33-byte (if
- *                      compressed==1) byte array to place the serialized key
- *                      in.
- *  In/Out: outputlen:  a pointer to an integer which is initially set to the
- *                      size of output, and is overwritten with the written
- *                      size.
- *  In:     pubkey:     a pointer to a secp256k1_pubkey containing an
- *                      initialized public key.
- *          flags:      SECP256K1_EC_COMPRESSED if serialization should be in
- *                      compressed format, otherwise SECP256K1_EC_UNCOMPRESSED.
+ *  Returns: 1 if the public key was fully valid.
+ *           0 if the public key could not be parsed or is invalid.
+ *  Args: ctx:      a secp256k1 context object.
+ *  Out:  pubkey:   pointer to a pubkey object. If 1 is returned, it is set to a
+ *                  parsed version of input. If not, its value is undefined.
+ *  In:   input:    pointer to a serialized public key
+ *        inputlen: length of the array pointed to by input
+ *
+ *  This function supports parsing compressed (33 bytes, header byte 0x02 or
+ *  0x03), uncompressed (65 bytes, header byte 0x04), or hybrid (65 bytes, header
+ *  byte 0x06 or 0x07) format public keys.
  */
-int secp256k1_ec_pubkey_serialize(
+int secp256k1_ec_pubkey_parse(
     const secp256k1_context* ctx,
-    unsigned char *output,
-    size_t *outputlen,
-    const secp256k1_pubkey* pubkey,
-    unsigned int flags
-);
-
+    secp256k1_pubkey* pubkey,
+    const unsigned char *input,
+    size_t inputlen);
