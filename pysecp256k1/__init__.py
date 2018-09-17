@@ -114,7 +114,7 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
         raise ValueError('Invalid serialized compression format flag.')
 
     # Pointer to a 33- or 65-byte array to place the serialized key in
-    output = ffi.new('char []', publen)
+    output = ffi.new('char[]', publen)
 
     # Pointer to an integer which is initially set to the size of the output,
     # and is overwritten with the written size
