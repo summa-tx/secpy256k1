@@ -15,6 +15,10 @@ def context_create(flags):
     Returns:
         ctx     (secp256k1_context):    a newly created context object
     '''
+    # Validate context flags
+    if flags not in CONTEXT_FLAGS:
+        raise TypeError('Invalid context flag.')
+
     return lib.secp256k1_context_create(flags)
 
 
@@ -26,6 +30,13 @@ def context_clone(ctx):
     Returns:
         ctx     (secp256k1_context):    a newly created context object
     '''
+    # Validate context
+    try:
+        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
+    except TypeError:
+        print('Invalid context. Must be secp256k1_context_struct pointer.')
+        raise
+
     return lib.secp256k1_context_clone(ctx)
 
 
@@ -36,6 +47,13 @@ def context_destroy(ctx):
         ctx     (secp256k1_context):    an existing conect to destroy (cannot
                                         be NULL)
     '''
+    # Validate context
+    try:
+        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
+    except TypeError:
+        print('Invalid context. Must be secp256k1_context_struct pointer.')
+        raise
+
     lib.secp256k1_context_destroy(ctx)
 
 
