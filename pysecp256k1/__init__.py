@@ -31,11 +31,7 @@ def context_clone(ctx):
         ctx     (secp256k1_context):    a newly created context object
     '''
     # Validate context
-    try:
-        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
-    except TypeError:
-        print('Invalid context. Must be secp256k1_context_struct pointer.')
-        raise
+    validate_context(ctx)
 
     return lib.secp256k1_context_clone(ctx)
 
@@ -48,11 +44,7 @@ def context_destroy(ctx):
                                         be NULL)
     '''
     # Validate context
-    try:
-        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
-    except TypeError:
-        print('Invalid context. Must be secp256k1_context_struct pointer.')
-        raise
+    validate_context(ctx)
 
     lib.secp256k1_context_destroy(ctx)
 
@@ -70,11 +62,7 @@ def ec_pubkey_parse(ctx, input):
                                         containing an initialized public key
     '''
     # Validate context
-    try:
-        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
-    except TypeError:
-        print('Invalid context. Must be secp256k1_context_struct pointer.')
-        raise
+    validate_context(ctx)
 
     # Validate input
     if not isinstance(input, bytes) or len(input) not in [33, 65]:
@@ -112,15 +100,10 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
                                         serialized key in
     '''
     # Validate context
-    try:
-        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
-    except TypeError:
-        print('Invalid context. Must be secp256k1_context_struct pointer.')
-        raise
+    validate_context(ctx)
 
     # Validate public key
-    if ffi.typeof(pubkey) is not ffi.typeof('secp256k1_pubkey *'):
-        raise ValueError('Invalid pubkey. Must be secp256k1_pubkey pointer.')
+    validate_public_key(pubkey)
 
     # Validate flags
     if flags is lib.SECP256K1_EC_COMPRESSED:
@@ -202,18 +185,10 @@ def ec_pubkey_tweak_add(ctx, pubkey, tweak):
                                         containing tweaked public key
     '''
     # Validate context
-    try:
-        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
-    except TypeError:
-        print('Invalid context. Must be secp256k1_context_struct pointer.')
-        raise
+    validate_context(ctx)
 
     # Validate public key
-    try:
-        ffi.typeof(pubkey) is ffi.typeof('secp256k1_pubkey *')
-    except TypeError:
-        print('Invalid pubkey. Must be secp256k1_pubkey pointer.')
-        raise
+    validate_public_key(pubkey)
 
     # Validate tweak
     if not isinstance(tweak, bytes) or len(tweak) != 32:
@@ -237,3 +212,45 @@ def context_randomize(ctx, seed32):
 
 def ec_pubkey_combine(ctx, out, ins):
     pass
+
+
+def validate_context(ctx):
+    '''Checks that context is a valid secp256k1_context struct pointer.
+    Args:
+        ctx     (secp256k1_context):    a secp256k1 context object
+    Returns:
+                (True):                 if ctx is valid, otherwise error
+    '''
+    return _validate_ffi_type(
+            ctx,
+            'struct secp256k1_context_struct *',
+            'Invalid context. Must be secp256k1_context_struct pointer.')
+
+
+def validate_public_key(pubkey):
+    '''Checks that pubkey is a valid secp256k1_pubkey pointer.
+    Args:
+        pubkey  (secp256k1_pubkey):     a secp256k1 context object
+    Returns:
+                (True):                 if pubkey is valid, otherwise error
+    '''
+    return _validate_ffi_type(
+            pubkey,
+            'secp256k1_pubkey *',
+            'Invalid pubkey. Must be secp256k1_pubkey pointer.')
+
+
+def _validate_ffi_type(value, type_str, err_msg):
+    '''Checks that value is a valid ffi CData type.
+    Args:
+        value   (ffi.CData):    a secp256k1 context object
+    Returns:
+                (True):         if value is valid, otherwise error
+    '''
+    if not isinstance(value, ffi.CData):
+        raise TypeError(err_msg)
+
+    elif ffi.typeof(value) is not ffi.typeof(type_str):
+        raise TypeError(err_msg)
+
+    return True
