@@ -114,7 +114,7 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
         raise ValueError('Invalid serialized compression format flag.')
 
     # Pointer to a 33- or 65-byte array to place the serialized key in
-    output = ffi.new('char [%d]' % publen)
+    output = ffi.new('char []', publen)
 
     # Pointer to an integer which is initially set to the size of the output,
     # and is overwritten with the written size
@@ -221,7 +221,7 @@ def validate_context(ctx):
     Returns:
                 (True):                 if ctx is valid, otherwise error
     '''
-    return _validate_ffi_type(
+    return _validate_cdata_type(
             ctx,
             'struct secp256k1_context_struct *',
             'Invalid context. Must be secp256k1_context_struct pointer.')
@@ -234,13 +234,13 @@ def validate_public_key(pubkey):
     Returns:
                 (True):                 if pubkey is valid, otherwise error
     '''
-    return _validate_ffi_type(
+    return _validate_cdata_type(
             pubkey,
             'secp256k1_pubkey *',
             'Invalid pubkey. Must be secp256k1_pubkey pointer.')
 
 
-def _validate_ffi_type(value, type_str, err_msg):
+def _validate_cdata_type(value, type_str, err_msg):
     '''Checks that value is a valid ffi CData type.
     Args:
         value   (ffi.CData):    a secp256k1 context object
