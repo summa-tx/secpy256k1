@@ -5,9 +5,12 @@
 ### Setup
 
 #### Install
+
+```
 $ git clone https://github.com/rrybarczyk/pysecp256k1.git
 $ cd pysecp256k1
 $ pipenv install
+```
 
 #### Build
 
