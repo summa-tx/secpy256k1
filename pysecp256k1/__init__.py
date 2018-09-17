@@ -1,31 +1,76 @@
 from _secp256k1 import lib, ffi
 
-
-def ctx_create(ctx):
-    return lib.secp256k1_context_create(ctx)
-
-
-def ctx_destroy(ctx):
-    return lib.secp256k1_context_destroy(ctx)
+CONTEXT_FLAGS = [
+    lib.SECP256K1_CONTEXT_VERIFY,
+    lib.SECP256K1_CONTEXT_SIGN,
+    lib.SECP256K1_CONTEXT_NONE
+]
 
 
-def ec_pubkey_parse(ctx, pubkey):
-    '''Parse a variable-length public key into the pubkey object.
+def context_create(flags):
+    '''Create a secp256k1 context object.
     Args:
-        ctx     (secp256k1_context):    a secp256k1 context object
-        pubkey  (bytes):                serialized public key
+        flags   (CONTEXT_FLAG):         which parts of the context to
+                                        initialize
     Returns:
-        pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
+        ctx     (secp256k1_context):    a newly created context object
+    '''
+    return lib.secp256k1_context_create(flags)
+
+
+def context_clone(ctx):
+    '''Copies a secp256k1 context object.
+    Args:
+        ctx     (secp256k1_context):    an existing context to copy (cannot be
+                                        NULL)
+    Returns:
+        ctx     (secp256k1_context):    a newly created context object
+    '''
+    return lib.secp256k1_context_clone(ctx)
+
+
+def context_destroy(ctx):
+    '''Destroy a secp256k1 context object.
+    This context pointer may not be used afterwards.
+    Args:
+        ctx     (secp256k1_context):    an existing conect to destroy (cannot
+                                        be NULL)
+    '''
+    lib.secp256k1_context_destroy(ctx)
+
+
+def ec_pubkey_parse(ctx, input):
+    '''Parse a variable-length public key into the pubkey object.
+    This function supports parsing compressed (33 bytes, header byte 0x02 or
+    0x03), uncompressed (65 bytes, header byte 0x04), or hybrid (65 bytes,
+    header byte 0x06 or 0x07) format public keys.
+    Args:
+        ctx     (secp256k1_context):    secp256k1 context object
+        input   (bytes):                pointer to a serialized public key
+    Returns:
+        pubkey  (secp256k1_pubkey):     pointer to a secp256k1_pubkey
                                         containing an initialized public key
     '''
-    # TODO: Validate context
-    # Validate public key
-    if not isinstance(pubkey, bytes) or len(pubkey) not in [33, 65]:
+    # Validate context
+    try:
+        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
+    except TypeError:
+        print('Invalid context. Must be secp256k1_context_struct pointer.')
+        raise
+
+    # Validate input
+    if not isinstance(input, bytes) or len(input) not in [33, 65]:
         raise ValueError('Invalid pubkey. Must be 33- or 65-bytes.')
 
-    inputlen = len(pubkey)
-    input = pubkey
+    # Length of the array pointed to by input
+    inputlen = len(input)
+
+    # Pointer to a pubkey object. If 1 is returned, it is set to a parsed
+    # version of input. If not, its value is undefined.
     pubkey = ffi.new('secp256k1_pubkey *')
+
+    # Returns: 1 if the public key was fully valid.
+    #          0 if the public key could not be parsed or is invalid.
     if lib.secp256k1_ec_pubkey_parse(ctx, pubkey, input, inputlen):
         return pubkey
     else:
@@ -43,10 +88,22 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
                                         format, otherwise
                                         SECP256K1_EC_UNCOMPRESSED
     Returns:
-        pubkey  (bytes):                serialized public key
+        output (ctype 'char[33]'):      a pointer to a 65-byte (if
+                                        compressed==0) or 33-byte (if
+                                        compressed==1) byte array to place the
+                                        serialized key in
     '''
-    # TODO: Validate context
-    # TODO: Validate public key
+    # Validate context
+    try:
+        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
+    except TypeError:
+        print('Invalid context. Must be secp256k1_context_struct pointer.')
+        raise
+
+    # Validate public key
+    if ffi.typeof(pubkey) is not ffi.typeof('secp256k1_pubkey *'):
+        raise ValueError('Invalid pubkey. Must be secp256k1_pubkey pointer.')
+
     # Validate flags
     if flags is lib.SECP256K1_EC_COMPRESSED:
         publen = 33
@@ -64,14 +121,55 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
 
     if lib.secp256k1_ec_pubkey_serialize(
             ctx, output, outputlen, pubkey, flags):
+        return output
 
-        # Buffer object referencing cdata pointer -> bytes
-        return bytes(ffi.buffer(output, publen))
+
+def ecdsa_signature_parse_compact(ctx, sig, input64):
+    pass
+
+
+def ecdsa_signature_parse_der(ctx, sig, input, inputlen):
+    pass
+
+
+def ecdsa_signature_serialize_der(ctx, output, outputlen, sig):
+    pass
+
+
+def ecdsa_signature_serialize_compact(ctx, output64, sig):
+    pass
+
+
+def ecdsa_verify(ctx, sig, msg32, pubkey):
+    pass
+
+
+def ecdsa_signature_normalize(ctx, sigout, sigin):
+    pass
+
+
+def ecdsa_sign(ctx, sig, msg32, seckey, noncefp, ndata):
+    pass
+
+
+def ec_seckey_verify(ctx, seckey):
+    pass
+
+
+def ec_pubkey_create(ctx, pubkey, seckey):
+    pass
+
+
+def ec_privkey_negate(ctx, seckey):
+    pass
+
+
+def ec_pubkey_negate(ctx, pubkey):
+    pass
 
 
 def ec_privkey_tweak_add(ctx, seckey, tweak):
     pass
-    #  return lib.secp256k1_ec_privkey_tweak_add(ctx, seckey, tweak)
 
 
 def ec_pubkey_tweak_add(ctx, pubkey, tweak):
@@ -85,14 +183,39 @@ def ec_pubkey_tweak_add(ctx, pubkey, tweak):
         pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
                                         containing tweaked public key
     '''
+    # Validate context
+    try:
+        ffi.typeof(ctx) is ffi.typeof('struct secp256k1_context_struct *')
+    except TypeError:
+        print('Invalid context. Must be secp256k1_context_struct pointer.')
+        raise
+
+    # Validate public key
+    try:
+        ffi.typeof(pubkey) is ffi.typeof('secp256k1_pubkey *')
+    except TypeError:
+        print('Invalid pubkey. Must be secp256k1_pubkey pointer.')
+        raise
+
+    # Validate tweak
+    if not isinstance(tweak, bytes) or len(tweak) != 32:
+        raise ValueError('Invalid tweak. Must be 32-bytes.')
+
+    if lib.secp256k1_ec_pubkey_tweak_add(ctx, pubkey, tweak):
+        return pubkey
+
+
+def ec_privkey_tweak_mul(ctx, seckey, tweak):
     pass
-    #  # TODO: Validate context
-    #  # TODO: Validate public key
-    #
-    #  #  # Validate tweak
-    #  #  if not isinstance(tweak, bytes) or len(tweak) != 32:
-    #  #      raise ValueError('Invalid tweak. Must be 32-bytes.')
-    #
-    #  pubkey = ffi.new('secp256k1_pubkey *')
-    #  if lib.secp256k1_ec_pubkey_tweak_add(ctx, pubkey, tweak):
-    #      return pubkey
+
+
+def ec_pubkey_tweak_mul(ctx, pubkey, tweak):
+    pass
+
+
+def context_randomize(ctx, seed32):
+    pass
+
+
+def ec_pubkey_combine(ctx, out, ins):
+    pass

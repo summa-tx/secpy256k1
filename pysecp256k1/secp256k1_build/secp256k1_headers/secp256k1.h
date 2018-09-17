@@ -57,6 +57,13 @@ typedef struct { unsigned char data[64]; } secp256k1_ecdsa_signature;
  */
 secp256k1_context* secp256k1_context_create(unsigned int flags);
 
+/** Copies a secp256k1 context object.
+ *
+ *  Returns: a newly created context object.
+ *  Args:    ctx: an existing context to copy (cannot be NULL)
+ */
+secp256k1_context* secp256k1_context_clone(const secp256k1_context* ctx);
+
 /** Destroy a secp256k1 context object.
  *
  *  The context pointer may not be used afterwards.
