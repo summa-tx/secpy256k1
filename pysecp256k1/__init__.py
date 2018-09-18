@@ -167,13 +167,14 @@ def ecdsa_verify(ctx, sig, msg32, pubkey):
     # Validate pubkey
     validate_public_key(pubkey)
 
-    # TODO: Validate sig
-    # TODO: Validate msg
+    # Validate sig
+    validate_signature(sig)
 
-    if lib.sepc256k1_ecdsa_verify(ctx, sig, msg32, pubkey):
-        return True
-    else:
-        return False
+    # Validate msg
+    if not isinstance(msg32, bytes) or len(msg32) != 32:
+        raise ValueError('Invalid msg32. Must be 32-bytes.')
+
+    return lib.secp256k1_ecdsa_verify(ctx, sig, msg32, pubkey)
 
 
 def ecdsa_signature_normalize(ctx, sigout, sigin):
