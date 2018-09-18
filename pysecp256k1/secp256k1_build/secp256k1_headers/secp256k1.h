@@ -163,6 +163,26 @@ int secp256k1_ecdsa_verify(
     const secp256k1_pubkey *pubkey
 );
 
+/** Parse an ECDSA signature in compact (64 bytes) format.
+ *
+ *  Returns: 1 when the signature could be parsed, 0 otherwise.
+ *  Args: ctx:      a secp256k1 context object
+ *  Out:  sig:      a pointer to a signature object
+ *  In:   input64:  a pointer to the 64-byte array to parse
+ *
+ *  The signature must consist of a 32-byte big endian R value, followed by a
+ *  32-byte big endian S value. If R or S fall outside of [0..order-1], the
+ *  encoding is invalid. R and S with value 0 are allowed in the encoding.
+ *
+ *  After the call, sig will always be initialized. If parsing failed or R or
+ *  S are zero, the resulting sig value is guaranteed to fail validation for any
+ *  message and public key.
+ */
+int secp256k1_ecdsa_signature_parse_compact(
+    const secp256k1_context* ctx,
+    secp256k1_ecdsa_signature* sig,
+    const unsigned char *input64);
+
 /** Create an ECDSA signature.
  *
  *  Returns: 1: signature created
@@ -185,6 +205,44 @@ int secp256k1_ecdsa_sign(
     secp256k1_nonce_function noncefp,
     const void *ndata
 );
+
+/** Parse a DER ECDSA signature.
+ *
+ *  Returns: 1 when the signature could be parsed, 0 otherwise.
+ *  Args: ctx:      a secp256k1 context object
+ *  Out:  sig:      a pointer to a signature object
+ *  In:   input:    a pointer to the signature to be parsed
+ *        inputlen: the length of the array pointed to be input
+ *
+ *  This function will accept any valid DER encoded signature, even if the
+ *  encoded numbers are out of range.
+ *
+ *  After the call, sig will always be initialized. If parsing failed or the
+ *  encoded numbers are out of range, signature validation with it is
+ *  guaranteed to fail for every message and public key.
+ */
+int secp256k1_ecdsa_signature_parse_der(
+    const secp256k1_context* ctx,
+    secp256k1_ecdsa_signature* sig,
+    const unsigned char *input,
+    size_t inputlen);
+
+/** Serialize an ECDSA signature in DER format.
+ *
+ *  Returns: 1 if enough space was available to serialize, 0 otherwise
+ *  Args:   ctx:       a secp256k1 context object
+ *  Out:    output:    a pointer to an array to store the DER serialization
+ *  In/Out: outputlen: a pointer to a length integer. Initially, this integer
+ *                     should be set to the length of output. After the call
+ *                     it will be set to the length of the serialization (even
+ *                     if 0 was returned).
+ *  In:     sig:       a pointer to an initialized signature object
+ */
+int secp256k1_ecdsa_signature_serialize_der(
+    const secp256k1_context* ctx,
+    unsigned char *output,
+    size_t *outputlen,
+    const secp256k1_ecdsa_signature* sig);
 
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for

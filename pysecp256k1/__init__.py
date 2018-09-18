@@ -59,15 +59,15 @@ def ec_pubkey_parse(ctx, input):
     0x03), uncompressed (65 bytes, header byte 0x04), or hybrid (65 bytes,
     header byte 0x06 or 0x07) format public keys.
     Args:
-        ctx     (secp256k1_context*):       secp256k1 context object
-        input   (bytes):                    pointer to a serialized public key
+        ctx     (secp256k1_context*):   secp256k1 context object
+        input   (bytes):                pointer to a serialized public key
     Returns:
-                (int, secp256k1_pubkey*):   (1 if the public key was fully
-                                            valid. 0 if the public key could
-                                            not be parsed or is invalid,
-                                            pointer to a secp256k1_pubkey
-                                            containing an initialized public
-                                            key)
+        (int, secp256k1_pubkey*):       (1 if the public key was fully
+                                        valid. 0 if the public key could
+                                        not be parsed or is invalid,
+                                        pointer to a secp256k1_pubkey
+                                        containing an initialized public
+                                        key)
     '''
     # Validate context
     utils.validate_context(ctx)
@@ -133,16 +133,105 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
         ctx, output, outputlen, pubkey, flags), output, outputlen)
 
 
-def ecdsa_signature_parse_compact(ctx, sig, input64):
-    pass
+def ecdsa_signature_parse_compact(ctx, input64):
+    '''Parse an ECDSA signature in compact (64 bytes) format.
+
+    The signature must consist of a 32-byte big endian R value, followed by a
+    32-byte big endian S value. If R or S fall outside of [0..order-1], the
+    encoding is invalid. R and S with value 0 are allowed in the encoding.
+
+    After the call, sig will always be initialized. If parsing failed or R or
+    S are zero, the resulting sig value is guaranteed to fail validation for
+    any message and public key.
+
+    Args:
+        ctx     (secp256k1_context*):       a secp256k1 context object
+        input64 (bytes):                    a pointer to the 64-byte array to
+                                            parse
+    Returns:
+        (int, secp256k1_ecdsa_signature*):  (1 when the signature could be
+                                            parsed, 0 otherwise,
+                                            a pointer to a signature object)
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Pointer to a signature object
+    sig = ffi.new('sepc256k1_ecdsa_signature *')
+
+    # Parse an ECDSA signature in compact (64 bytes) format
+    return (lib.secp256k1_ecdsa_signature_parse_compact(ctx, sig, input64),
+            sig)
 
 
-def ecdsa_signature_parse_der(ctx, sig, input, inputlen):
-    pass
+def ecdsa_signature_parse_der(ctx, input):
+    '''Parse a DER ECDSA signature.
+
+    This function will accept any valid DER encoded signature, even if the
+    encoded numbers are out of range.
+
+    After the call, sig will always be initialized. If parsing failed or the
+    encoded numbers are out of range, signature validation with it is
+    guaranteed to fail for every message and public key.
+
+    Args:
+        ctx     (secp256k1_context*):       a secp256k1 context object
+        input   (bytes):                    a pointer to the signature to be
+                                            parsed
+    Returns:
+        (int, secp256k1_ecdsa_signature*):  (1 when the signature could be
+                                            parsed, 0 otherwise,
+                                            a pointer to a signature object)
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate signature
+    utils.validate_signature_ser(input)
+
+    # Length of the array pointed to be input
+    inputlen = len(input)
+
+    # Pointer to a signature object
+    sig = ffi.new('secp256k1_ecdsa_signature *')
+
+    # Parse a DER ECDSA signature
+    return (lib.secp256k1_ecdsa_signature_parse_der(ctx, sig, input, inputlen),
+            sig)
 
 
-def ecdsa_signature_serialize_der(ctx, output, outputlen, sig):
-    pass
+def ecdsa_signature_serialize_der(ctx, sig, outputlen=74):
+    '''Serialize an ECDSA signature in DER format.
+    Args:
+        ctx         (secp256k1_context*):           a secp256k1 context object
+        sig         (secp256k1_ecdsa_signature*):   a pointer to an initialized
+                                                    signature object
+        outputlen   (int):                          pointer to a length of
+                                                    output
+    Returns:
+        (int, unsigned char[], size_t*):            (1 if enough space was
+                                                    available to serialize, 0
+                                                    otherwise, a pointer to an
+                                                    array to store the DER
+                                                    serialization, a pointer to
+                                                    a length of the
+                                                    serialization (even if 0
+                                                    was returned))
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate signature
+    utils.validate_signature(sig)
+
+    # Pointer to an array to store the DER serialization
+    output = ffi.new('unsigned char[]', outputlen)
+
+    # Pointer to a length integer
+    outputlen = ffi.new('size_t *', outputlen)
+
+    return (lib.secp256k1_ecdsa_signature_serialize_der(
+        ctx, output, outputlen, sig), output, outputlen)
 
 
 def ecdsa_signature_serialize_compact(ctx, output64, sig):
@@ -262,7 +351,7 @@ def ec_privkey_tweak_add(ctx, seckey, tweak):
         seckey  (bytes):                a 32-byte private key
         tweak   (bytes):                a 32-byte tweak
     Returns:
-                (int, bytes):           (0 if the tweak was out of range
+        (int, bytes):                   (0 if the tweak was out of range
                                         (change of around 1 in 2^128 for
                                         uniformly random 32-byte arrays), or if
                                         the resulting private key would be
@@ -288,22 +377,22 @@ def ec_privkey_tweak_add(ctx, seckey, tweak):
 def ec_pubkey_tweak_add(ctx, pubkey, tweak):
     ''' Tweak a public key by adding tweak times the generator to it.
     Args:
-        ctx     (secp256k1_context):        a secp256k1 context object
-        pubkey  (secp256k1_pubkey):         a pointer to a secp256k1_pubkey
-                                            containing an initialized public
-                                            key
-        tweak   (bytes):                    a 32-byte tweak
+        ctx     (secp256k1_context):    a secp256k1 context object
+        pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
+                                        containing an initialized public
+                                        key
+        tweak   (bytes):                a 32-byte tweak
     Returns:
-                (int, secp256k1_pubkey*):   (0 if the tweak was out of range
-                                            (change of around 1 in 2^128 for
-                                            uniformly random 32-byte arrays),
-                                            or if the resulting public key
-                                            would be invalid (only when the
-                                            tweak is the complement of the
-                                            corresponding private key). 1
-                                            otherwise,
-                                            a pointer to a secp256k1_pubkey
-                                            containing tweaked public key)
+        (int, secp256k1_pubkey*):       (0 if the tweak was out of range
+                                        (change of around 1 in 2^128 for
+                                        uniformly random 32-byte arrays),
+                                        or if the resulting public key
+                                        would be invalid (only when the
+                                        tweak is the complement of the
+                                        corresponding private key). 1
+                                        otherwise,
+                                        a pointer to a secp256k1_pubkey
+                                        containing tweaked public key)
     '''
     # Validate context
     utils.validate_context(ctx)

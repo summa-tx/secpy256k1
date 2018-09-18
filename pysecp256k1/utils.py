@@ -4,9 +4,13 @@ from _secp256k1 import ffi
 def _validate_cdata_type(value, type_str, err_msg, null_flag=False):
     '''Checks that value is a valid ffi CData type.
     Args:
-        value   (ffi.CData):    a secp256k1 context object
+        value       (ffi.CData):    ffi cdata type value
+        type_str    (str):          ffi cdata type
+        err_msg     (str):          error message
+        null_flag   (bool):         true if ffi.NULL is an acceptable value,
+                                    false if ffi.NULL is unacceptable value
     Returns:
-                (True):         if value is valid, otherwise error
+        (True):                     if value is valid, otherwise error
     '''
     if not isinstance(value, ffi.CData):
         raise TypeError(err_msg)
@@ -20,12 +24,27 @@ def _validate_cdata_type(value, type_str, err_msg, null_flag=False):
     return True
 
 
+def _validate_bytes(value, byte_len, err_msg):
+    '''Checks that the serialized tweak is a valid byte string.
+    Args:
+        value       (bytes):        32-byte value
+        byte_len    (int):          valid byte length
+        err_msg     (str):          error message
+    Returns:
+        (True):                     if value is valid, otherwise error
+    '''
+    if not isinstance(value, bytes) or len(value) not in byte_len:
+        raise ValueError(err_msg)
+
+    return True
+
+
 def validate_context(ctx):
     '''Checks that context is a valid secp256k1_context struct pointer.
     Args:
-        ctx (secp256k1_context):    a secp256k1 context object
+        ctx (secp256k1_context*):   secp256k1 context object
     Returns:
-            (True):                 if ctx is valid, otherwise error
+        (True):                     if ctx is valid, otherwise error
     '''
     return _validate_cdata_type(
             ctx,
@@ -38,7 +57,7 @@ def validate_public_key(pubkey):
     Args:
         pubkey  (secp256k1_pubkey*):    pointer to secp256k1 context object
     Returns:
-                (True):                 if pubkey is valid, otherwise error
+        (True):                         if pubkey is valid, otherwise error
     '''
     return _validate_cdata_type(
             pubkey,
@@ -52,7 +71,7 @@ def validate_signature(sig):
         sig (secp256k1_ecdsa_signature*):   pointer to secp256k1 ecdsa
                                             signature object
     Returns:
-            (True):                         if sig is valid, otherwise error
+        (True):                             if sig is valid, otherwise error
     '''
     return _validate_cdata_type(
             sig,
@@ -66,7 +85,7 @@ def validate_noncefp(noncefp):
         noncefp (secp256k1_nonce_function*):    pointer to secp256k1 nonce
                                                 generation function or NULL
     Returns:
-                (True):                         if noncefp is valid, otherwise
+        (True):                                 if noncefp is valid, otherwise
                                                 error
     '''
     if noncefp is ffi.NULL:
@@ -81,26 +100,35 @@ def validate_noncefp(noncefp):
 def validate_secret_key_ser(seckey):
     '''Checks that the serialized secret key is a valid byte string.
     Args:
-        seckey  (bytes):                pointer to a 32-byte secret key (cannot
-                                        be NULL)
+        seckey  (bytes):        32-byte secret key
     Returns:
-                (True):                 if seckey is valid, otherwise error
+        (True):                 if seckey is valid, otherwise error
     '''
-    if not isinstance(seckey, bytes) or len(seckey) != 32:
-        raise ValueError('Invalid msg. Must be 32-bytes.')
-
-    return True
+    return _validate_bytes(seckey, [32], 'Invalid seckey. Must be 32-bytes.')
 
 
 def validate_public_key_ser(pubkey):
     '''Checks that the serialized public key is a valid byte string.
     Args:
-        pubkey  (bytes):                pointer to a serialized public key
+        pubkey  (bytes):    32-byte public key
     Returns:
-                (True):                 if pubkey is valid, otherwise error
+        (True):             if pubkey is valid, otherwise error
     '''
-    if not isinstance(pubkey, bytes) or len(pubkey) not in [33, 65]:
-        raise ValueError('Invalid pubkey. Must be 33- or 65-bytes.')
+    return _validate_bytes(
+            pubkey,
+            [33, 65],
+            'Invalid pubkey. Must be 33- or 65-bytes.')
+
+
+def validate_signature_ser(sig):
+    '''Checks that the serialized signature is a valid byte string.
+    Args:
+        seckey  (bytes):        signature
+    Returns:
+        (True):                 if sig is valid, otherwise error
+    '''
+    if not isinstance(sig, bytes):
+        raise ValueError('Invalid signature. Must be bytes.')
 
     return True
 
@@ -108,37 +136,30 @@ def validate_public_key_ser(pubkey):
 def validate_msg32_ser(msg32):
     '''Checks that the serialized message is a valid byte string.
     Args:
-        msg32   (bytes):                the 32-byte message hash being verified
-                                        (cannot be NULL)
+        msg32   (bytes):    32-byte message hash being verified
     Returns:
-                (True):                 if msg32 is valid, otherwise error
+        (True):             if msg32 is valid, otherwise error
     '''
-    if not isinstance(msg32, bytes) or len(msg32) != 32:
-        raise ValueError('Invalid msg32. Must be 32-bytes.')
-
-    return True
+    return _validate_bytes(msg32, [32], 'Invalid msg32. Must be 32-bytes.')
 
 
 def validate_tweak_ser(tweak):
     '''Checks that the serialized tweak is a valid byte string.
     Args:
-        tweak   (bytes):                a 32-byte tweak (cannot be NULL)
+        tweak   (bytes):    32-byte tweak
     Returns:
-                (True):                 if tweak is valid, otherwise error
+        (True):             if tweak is valid, otherwise error
     '''
-    if not isinstance(tweak, bytes) or len(tweak) != 32:
-                raise ValueError('Invalid tweak. Must be 32-bytes.')
-
-    return True
+    return _validate_bytes(tweak, [32], 'Invalid tweak. Must be 32-bytes.')
 
 
 def validate_ndata(ndata):
     '''Checks that ndata is a valid ctype or NULL.
     Args:
-        ndata   (void*):                pointer to arbitrary data used by the
-                                        nonce generation function (can be NULL)
+        ndata   (void*):    pointer to arbitrary data used by the nonce
+                            generation function (can be NULL)
     Returns:
-                (True):                 if ndata is valid, otherwise error
+        (True):             if ndata is valid, otherwise error
     '''
     return _validate_cdata_type(
             value=ndata,
