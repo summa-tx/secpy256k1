@@ -1,10 +1,10 @@
 from _secp256k1 import ffi
 
 
-def _validate_cdata_type(value, type_str, err_msg, null_flag=False):
+def validate_cdata_type(value, type_str, err_msg, null_flag=False):
     '''Checks that value is a valid ffi CData type.
     Args:
-        value       (ffi.CData):    ffi cdata type value
+        value       (ffi.CData):    value to check
         type_str    (str):          ffi cdata type
         err_msg     (str):          error message
         null_flag   (bool):         true if ffi.NULL is an acceptable value,
@@ -24,10 +24,10 @@ def _validate_cdata_type(value, type_str, err_msg, null_flag=False):
     return True
 
 
-def _validate_bytes(value, byte_len, err_msg):
-    '''Checks that the serialized tweak is a valid byte string.
+def validate_bytes_type(value, byte_len, err_msg):
+    '''Checks that the serialized value is a valid byte string.
     Args:
-        value       (bytes):        32-byte value
+        value       (bytes):        value to check
         byte_len    (int):          valid byte length
         err_msg     (str):          error message
     Returns:
@@ -46,7 +46,7 @@ def validate_context(ctx):
     Returns:
         (True):                     if ctx is valid, otherwise error
     '''
-    return _validate_cdata_type(
+    return validate_cdata_type(
             ctx,
             'struct secp256k1_context_struct *',
             'Invalid context. Must be secp256k1_context_struct pointer.')
@@ -59,7 +59,7 @@ def validate_public_key(pubkey):
     Returns:
         (True):                         if pubkey is valid, otherwise error
     '''
-    return _validate_cdata_type(
+    return validate_cdata_type(
             pubkey,
             'secp256k1_pubkey *',
             'Invalid pubkey. Must be secp256k1_pubkey pointer.')
@@ -73,7 +73,7 @@ def validate_signature(sig):
     Returns:
         (True):                             if sig is valid, otherwise error
     '''
-    return _validate_cdata_type(
+    return validate_cdata_type(
             sig,
             'secp256k1_ecdsa_signature *',
             'Invalid sig. Must be secp256k1_ecdsa_signature pointer.')
@@ -91,7 +91,7 @@ def validate_noncefp(noncefp):
     if noncefp is ffi.NULL:
         return True
 
-    return _validate_cdata_type(
+    return validate_cdata_type(
             noncefp,
             'secp256k1_nonce_function *',
             'Invalid noncefp. Must be secp256k1_nonce_function pointer.')
@@ -104,7 +104,8 @@ def validate_secret_key_ser(seckey):
     Returns:
         (True):                 if seckey is valid, otherwise error
     '''
-    return _validate_bytes(seckey, [32], 'Invalid seckey. Must be 32-bytes.')
+    return validate_bytes_type(
+            seckey, [32], 'Invalid seckey. Must be 32-bytes.')
 
 
 def validate_public_key_ser(pubkey):
@@ -114,10 +115,8 @@ def validate_public_key_ser(pubkey):
     Returns:
         (True):             if pubkey is valid, otherwise error
     '''
-    return _validate_bytes(
-            pubkey,
-            [33, 65],
-            'Invalid pubkey. Must be 33- or 65-bytes.')
+    return validate_bytes_type(
+            pubkey, [33, 65], 'Invalid pubkey. Must be 33- or 65-bytes.')
 
 
 def validate_signature_ser(sig):
@@ -140,7 +139,7 @@ def validate_msg32_ser(msg32):
     Returns:
         (True):             if msg32 is valid, otherwise error
     '''
-    return _validate_bytes(msg32, [32], 'Invalid msg32. Must be 32-bytes.')
+    return validate_bytes_type(msg32, [32], 'Invalid msg32. Must be 32-bytes.')
 
 
 def validate_tweak_ser(tweak):
@@ -150,7 +149,7 @@ def validate_tweak_ser(tweak):
     Returns:
         (True):             if tweak is valid, otherwise error
     '''
-    return _validate_bytes(tweak, [32], 'Invalid tweak. Must be 32-bytes.')
+    return validate_bytes_type(tweak, [32], 'Invalid tweak. Must be 32-bytes.')
 
 
 def validate_ndata(ndata):
@@ -161,7 +160,7 @@ def validate_ndata(ndata):
     Returns:
         (True):             if ndata is valid, otherwise error
     '''
-    return _validate_cdata_type(
+    return validate_cdata_type(
             value=ndata,
             type_str=ffi.NULL,
             err_msg='Invalid ndata. Must be valid cdata type or NULL.',

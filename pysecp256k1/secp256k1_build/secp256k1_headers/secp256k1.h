@@ -158,29 +158,6 @@ int secp256k1_ecdsa_signature_parse_compact(
     secp256k1_ecdsa_signature* sig,
     const unsigned char *input64);
 
-/** Create an ECDSA signature.
- *
- *  Returns: 1: signature created
- *           0: the nonce generation function failed, or the private key was invalid.
- *  Args:    ctx:    pointer to a context object, initialized for signing (cannot be NULL)
- *  Out:     sig:    pointer to an array where the signature will be placed (cannot be NULL)
- *  In:      msg32:  the 32-byte message hash being signed (cannot be NULL)
- *           seckey: pointer to a 32-byte secret key (cannot be NULL)
- *           noncefp:pointer to a nonce generation function. If NULL, secp256k1_nonce_function_default is used
- *           ndata:  pointer to arbitrary data used by the nonce generation function (can be NULL)
- *
- * The created signature is always in lower-S form. See
- * secp256k1_ecdsa_signature_normalize for more details.
- */
-int secp256k1_ecdsa_sign(
-    const secp256k1_context* ctx,
-    secp256k1_ecdsa_signature *sig,
-    const unsigned char *msg32,
-    const unsigned char *seckey,
-    secp256k1_nonce_function noncefp,
-    const void *ndata
-);
-
 /** Parse a DER ECDSA signature.
  *
  *  Returns: 1 when the signature could be parsed, 0 otherwise.
@@ -304,6 +281,37 @@ int secp256k1_ecdsa_signature_normalize(
     const secp256k1_context* ctx,
     secp256k1_ecdsa_signature *sigout,
     const secp256k1_ecdsa_signature *sigin);
+
+/** Create an ECDSA signature.
+ *
+ *  Returns: 1: signature created
+ *           0: the nonce generation function failed, or the private key was invalid.
+ *  Args:    ctx:    pointer to a context object, initialized for signing (cannot be NULL)
+ *  Out:     sig:    pointer to an array where the signature will be placed (cannot be NULL)
+ *  In:      msg32:  the 32-byte message hash being signed (cannot be NULL)
+ *           seckey: pointer to a 32-byte secret key (cannot be NULL)
+ *           noncefp:pointer to a nonce generation function. If NULL, secp256k1_nonce_function_default is used
+ *           ndata:  pointer to arbitrary data used by the nonce generation function (can be NULL)
+ *
+ * The created signature is always in lower-S form. See
+ * secp256k1_ecdsa_signature_normalize for more details.
+ */
+int secp256k1_ecdsa_sign(
+    const secp256k1_context* ctx,
+    secp256k1_ecdsa_signature *sig,
+    const unsigned char *msg32,
+    const unsigned char *seckey,
+    secp256k1_nonce_function noncefp,
+    const void *ndata);
+
+/** Verify an ECDSA secret key.
+ *
+ *  Returns: 1: secret key is valid
+ *           0: secret key is invalid
+ *  Args:    ctx: pointer to a context object (cannot be NULL)
+ *  In:      seckey: pointer to a 32-byte secret key (cannot be NULL)
+ */
+int secp256k1_ec_seckey_verify(const secp256k1_context* ctx, const unsigned char *seckey);
 
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for

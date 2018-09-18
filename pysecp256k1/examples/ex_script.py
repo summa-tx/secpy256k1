@@ -53,5 +53,8 @@ bytes(pysecp256k1.ffi.buffer(ecdsa_sig_ser_output)).hex()
 bytes(pysecp256k1.ffi.buffer(ecdsa_sig_ser_outputlen)).hex()
 
 
+print(pysecp256k1.ec_seckey_verify(secp256k1_ctx, os.urandom(32)))
+
+
 
 
