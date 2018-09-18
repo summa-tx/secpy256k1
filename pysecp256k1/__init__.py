@@ -235,7 +235,7 @@ def ecdsa_signature_serialize_der(ctx, sig, outputlen=74):
         ctx, output, outputlen, sig), output, outputlen)
 
 
-def ecdsa_signature_serialize_compact(ctx, output64, sig):
+def ecdsa_signature_serialize_compact(ctx, sig):
     '''Serialize an ECDSA signature in compact (64 byte) format.
     See secp256k1_ecdsa_signature_parse_compact for details about the encoding.
     Args:
@@ -269,8 +269,7 @@ def ecdsa_verify(ctx, sig, msg32, pubkey):
     validation, but be aware that doing so results in malleable signatures.
     For details, see the comments for that function.
     Args:
-        ctx     (secp256k1_context*):           a secp256k1 context object,
-                                                initialized for verification
+        ctx     (secp256k1_context*):           a secp256k1 context object
         sig     (secp256k1_ecdsa_signature*):   the signature being verified
                                                 (cannot be NULL)
         msg32   (bytes):                        the 32-byte message hash being
@@ -299,7 +298,69 @@ def ecdsa_verify(ctx, sig, msg32, pubkey):
 
 
 def ecdsa_signature_normalize(ctx, sigout, sigin):
-    pass
+    '''Convert a signature to a normalized lower-S form.
+
+    With ECDSA a third-party can forge a second distinct signature of the same
+    message, given a single initial signature, but without knowing the key.
+    This is done by negating the S value modulo the order of the curve,
+    'flipping' the sign of the random point R which is not included in the
+    signature.
+
+    Forgery of the same message isn't universally problematic, but in systems
+    where message malleability or uniqueness of signatures is important this
+    can cause issues. This forgery can be blocked by all verifiers forcing
+    signers to use a normalized form.
+
+    The lower-S form reduces the size of signatures slightly on average when
+    variable length encodings (such as DER) are used and is cheap to verify,
+    making it a good choice. Security of always using lower-S is assured
+    because anyone can trivially modify a signature after the fact to enforce
+    this property anyway.
+
+    The lower S value is always between 0x1 and
+    0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0,
+    inclusive.
+
+    No other forms of ECDSA malleability are known and none seem likely, but
+    there is no formal proof that ECDSA, even with this additional restriction,
+    is free of other malleability. Commonly used serialization schemes will
+    also accept various non-unique encodings, so care should be taken when this
+    property is required for an application.
+
+    The secp256k1_ecdsa_sign function will by default create signatures in the
+    lower-S form, and secp256k1_ecdsa_verify will not accept others. In case
+    signatures come from a system that cannot enforce this property,
+    secp256k1_ecdsa_signature_normalize must be called before verification.
+
+    Args:
+        ctx     (secp256k1_context*):           a secp256k1 context object
+        sigin   (secp256k1_ecdsa_signature*):   a pointer to a signature to
+                                                check/normalize (cannot be
+                                                NULL, can be identical to
+                                                sigout)
+    Returns:
+        (int, secp256k1_ecdsa_signature*):      (1 if sigin was not normalized,
+                                                0 if it already was,
+                                                a pointer to a signature to
+                                                fill with the normalized form,
+                                                or copy if the input was
+                                                already normalized. (can be
+                                                NULL if you're only interested
+                                                in whether the input was
+                                                already normalized).
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate sig
+    utils.validate_signature(sigin)
+
+    # Pointer to a signature to fill witht he normalized form, or copy if the
+    # input was already normalized
+    sigout = ffi.new('secp256k1_ecdsa_signature *')
+
+    return (lib.secp256k1_ecdsa_signature_normalize(ctx, sigout, sigin),
+            sigout)
 
 
 def ecdsa_sign(ctx, msg32, seckey, noncefp, ndata):
