@@ -430,8 +430,31 @@ def ec_seckey_verify(ctx, seckey):
     return lib.secp256k1_ec_seckey_verify(ctx, seckey)
 
 
-def ec_pubkey_create(ctx, pubkey, seckey):
-    pass
+def ec_pubkey_create(ctx, seckey):
+    '''Compute the public key for a secret key.
+    Args:
+        ctx     (secp256k1_context*):   a secp256k1 context object, initialized
+                                        for signing (cannot be NULL)
+        seckey  (bytes):                pointer to a 32-byte private key
+                                        (cannot be NULL)
+    Returns:
+        (int, secp256k1_pubkey):        (1 if secret was valid, public key
+                                        stores, 0 if secret was invalid, try
+                                        again,
+                                        pointer to the created public key
+                                        (cannot be NULL))
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate secret key
+    utils.validate_secret_key_ser(seckey)
+
+    # Pointer to the created public key
+    pubkey = ffi.new('secp256k1_pubkey *')
+
+    # Compute the public key for a secret key
+    return (lib.secp256k1_ec_pubkey_create(ctx, pubkey, seckey), pubkey)
 
 
 def ec_privkey_negate(ctx, seckey):

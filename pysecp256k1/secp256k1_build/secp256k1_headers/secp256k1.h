@@ -313,6 +313,20 @@ int secp256k1_ecdsa_sign(
  */
 int secp256k1_ec_seckey_verify(const secp256k1_context* ctx, const unsigned char *seckey);
 
+/** Compute the public key for a secret key.
+ *
+ *  Returns: 1: secret was valid, public key stores
+ *           0: secret was invalid, try again
+ *  Args:   ctx:        pointer to a context object, initialized for signing (cannot be NULL)
+ *  Out:    pubkey:     pointer to the created public key (cannot be NULL)
+ *  In:     seckey:     pointer to a 32-byte private key (cannot be NULL)
+ */
+int secp256k1_ec_pubkey_create(
+    const secp256k1_context* ctx,
+    secp256k1_pubkey *pubkey,
+    const unsigned char *seckey);
+
+
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
  *          uniformly random 32-byte arrays, or if the resulting private key
