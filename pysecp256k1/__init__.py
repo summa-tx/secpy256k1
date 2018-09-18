@@ -210,9 +210,12 @@ def ecdsa_sign(ctx, msg32, seckey, noncefp, ndata):
                                             the nonce generation function (can
                                             be NULL)
     Returns:
-        sig (secp256k1_ecdsa_signature*):   pointer to an array where the
+        (int, secp256k1_ecdsa_signature*):  (1: signature created, 0: the nonce
+                                            generation function failed, or the
+                                            private key was invalid,
+                                            pointer to an array where the
                                             signature will be placed (cannot be
-                                            NULL)
+                                            NULL))
     '''
     # Validate context
     utils.validate_context(ctx)
@@ -231,11 +234,8 @@ def ecdsa_sign(ctx, msg32, seckey, noncefp, ndata):
 
     sig = ffi.new('secp256k1_ecdsa_signature *')
 
-    #  Returns: 1: signature created
-    #           0: the nonce generation function failed, or the private key was
-    #              invalid.
-    if lib.secp256k1_ecdsa_sign(ctx, sig, msg32, seckey, noncefp, ndata):
-        return sig
+    return (lib.secp256k1_ecdsa_sign(ctx, sig, msg32, seckey, noncefp, ndata),
+            sig)
 
 
 def ec_seckey_verify(ctx, seckey):

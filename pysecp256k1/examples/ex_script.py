@@ -33,7 +33,8 @@ seckey = os.urandom(32)
 msg = os.urandom(32)
 noncefp = pysecp256k1.ffi.NULL
 ndata = pysecp256k1.ffi.NULL
-sign = pysecp256k1.ecdsa_sign(secp256k1_ctx, msg, seckey, noncefp, ndata)
+sign_tuple = pysecp256k1.ecdsa_sign(secp256k1_ctx, msg, seckey, noncefp, ndata)
+sign = sign_tuple[1]
 
 # invalid sig but function still works
 flags = pysecp256k1.lib.SECP256K1_CONTEXT_VERIFY
