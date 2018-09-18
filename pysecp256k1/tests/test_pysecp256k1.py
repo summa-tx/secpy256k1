@@ -63,11 +63,15 @@ class TestPysecp256k1(unittest.TestCase):
             ctx = pysecp256k1.context_create(flags)
 
             # Parse variable length public key from bytes
-            secp256k1_pubkey = pysecp256k1.ec_pubkey_parse(ctx, self.pubkey)
+            secp256k1_pubkey_tuple = pysecp256k1.ec_pubkey_parse(
+                ctx, self.pubkey)
 
-            # Returns a secp256k1_context type
+            # First tuple entry returns a 1 for a fully valid public key
+            self.assertEqual(secp256k1_pubkey_tuple[0], 1)
+
+            # Second tuple entry returns a pointer to a secp256k1_pubkey
             self.assertEqual(
-                pysecp256k1.ffi.typeof(secp256k1_pubkey),
+                pysecp256k1.ffi.typeof(secp256k1_pubkey_tuple[1]),
                 pysecp256k1.ffi.typeof('secp256k1_pubkey *'))
 
         # Errors if invalid context flag
@@ -92,9 +96,10 @@ class TestPysecp256k1(unittest.TestCase):
             secp256k1_ctx = pysecp256k1.context_create(flags)
 
             # Create COMPRESSED secp256k1_pubkey object to serialize
-            secp256k1_pubkey = pysecp256k1.ec_pubkey_parse(
+            secp256k1_pubkey_tuple = pysecp256k1.ec_pubkey_parse(
                 secp256k1_ctx,
                 self.pubkey)
+            secp256k1_pubkey = secp256k1_pubkey_tuple[1]
 
             # Serialize COMPRESSED pubkey object to byte array pointer
             pubkey_ser = pysecp256k1.ec_pubkey_serialize(
@@ -131,9 +136,10 @@ class TestPysecp256k1(unittest.TestCase):
             secp256k1_ctx = pysecp256k1.context_create(flags)
 
             # Create UNCOMPRESSED secp256k1_pubkey object to serialize
-            secp256k1_pubkey = pysecp256k1.ec_pubkey_parse(
+            secp256k1_pubkey_tuple = pysecp256k1.ec_pubkey_parse(
                 secp256k1_ctx,
                 self.uncomp_pubkey)
+            secp256k1_pubkey = secp256k1_pubkey_tuple[1]
 
             # Serialize UNCOMPRESSED pubkey object to byte array pointer
             pubkey_ser = pysecp256k1.ec_pubkey_serialize(
@@ -210,27 +216,28 @@ class TestPysecp256k1(unittest.TestCase):
         pass
 
     def test_ec_privkey_tweak_add(self):
-        # TODO: Add better testing of resulting tweaked value
         # Create context
         secp256k1_ctx = pysecp256k1.context_create(
             pysecp256k1.lib.SECP256K1_CONTEXT_VERIFY)
 
         # Create COMPRESSED secp256k1_pubkey object to add tweak
-        secp256k1_pubkey = pysecp256k1.ec_pubkey_parse(
+        secp256k1_pubkey_tuple = pysecp256k1.ec_pubkey_parse(
             secp256k1_ctx,
             self.pubkey)
+        secp256k1_pubkey = secp256k1_pubkey_tuple[1]
 
         # Tweaked secp256k1_pubkey
-        secp256k1_pubkey_tweak = pysecp256k1.ec_pubkey_tweak_add(
+        secp256k1_pubkey_tweak_tuple = pysecp256k1.ec_pubkey_tweak_add(
             secp256k1_ctx,
             secp256k1_pubkey,
             self.tweak)
-        #  pubkey_tweak_hex = bytes(
-        #          pysecp256k1.ffi.buffer(secp256k1_pubkey_tweak)).hex()
 
-        # Returns a tweaked secp256k1_pubkey pointer type
+        # First tuple entry returns a 1 for a fully valid public key
+        self.assertEqual(secp256k1_pubkey_tweak_tuple[0], 1)
+
+        # Second tuple entry returns a tweaked secp256k1_pubkey pointer type
         self.assertEqual(
-            pysecp256k1.ffi.typeof(secp256k1_pubkey_tweak),
+            pysecp256k1.ffi.typeof(secp256k1_pubkey_tweak_tuple[1]),
             pysecp256k1.ffi.typeof('secp256k1_pubkey *'))
 
         # Errors if invalid context
