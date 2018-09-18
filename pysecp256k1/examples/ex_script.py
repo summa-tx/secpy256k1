@@ -10,10 +10,14 @@ secp256k1_ctx_clone = pysecp256k1.context_clone(secp256k1_ctx)
 secp256k1_pubkey_tuple = pysecp256k1.ec_pubkey_parse(secp256k1_ctx, pubkey)
 
 compression_flag = pysecp256k1.lib.SECP256K1_EC_COMPRESSED
-output = pysecp256k1.ec_pubkey_serialize(
+output_tuple = pysecp256k1.ec_pubkey_serialize(
         secp256k1_ctx,
         secp256k1_pubkey_tuple[1],
         compression_flag)
+
+output_int = output_tuple[0]
+output = output_tuple[1]
+ouputlen = output_tuple[2]
 pubkey_ser = bytes(pysecp256k1.ffi.buffer(output))
 
 pubkey_tweak_tuple = pysecp256k1.ec_pubkey_tweak_add(

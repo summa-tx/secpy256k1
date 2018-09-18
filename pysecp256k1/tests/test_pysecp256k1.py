@@ -101,19 +101,30 @@ class TestPysecp256k1(unittest.TestCase):
                 self.pubkey)
             secp256k1_pubkey = secp256k1_pubkey_tuple[1]
 
-            # Serialize COMPRESSED pubkey object to byte array pointer
-            pubkey_ser = pysecp256k1.ec_pubkey_serialize(
+            # Serialize COMPRESSED pubkey
+            pubkey_ser_tuple = pysecp256k1.ec_pubkey_serialize(
                 secp256k1_ctx,
                 secp256k1_pubkey,
                 pysecp256k1.lib.SECP256K1_EC_COMPRESSED)
+            pubkey_int = pubkey_ser_tuple[0]
+            pubkey_ser = pubkey_ser_tuple[1]
+            pubkeylen = pubkey_ser_tuple[2]
 
-            # Returns type char[] pointer to COMPRESSED public key byte array
+            # First tuple entry always returns 1
+            self.assertEqual(pubkey_int, 1)
+
+            # Second tuple entry returns type char[] pointer to COMPRESSED
+            # public key byte array
             self.assertEqual(
                 pysecp256k1.ffi.typeof(pubkey_ser),
                 pysecp256k1.ffi.typeof('char[]'))
 
-            # Returns pointer to COMPRESSED public key byte array of size 33
             self.assertEqual(pysecp256k1.ffi.sizeof(pubkey_ser), 33)
+
+            # Third tuple entry returns type size_t* pointer to public key size
+            self.assertEqual(
+                pysecp256k1.ffi.typeof(pubkeylen),
+                pysecp256k1.ffi.typeof('size_t*'))
 
         # Errors if invalid context flag
         with self.assertRaises(TypeError) as err:
@@ -141,19 +152,30 @@ class TestPysecp256k1(unittest.TestCase):
                 self.uncomp_pubkey)
             secp256k1_pubkey = secp256k1_pubkey_tuple[1]
 
-            # Serialize UNCOMPRESSED pubkey object to byte array pointer
-            pubkey_ser = pysecp256k1.ec_pubkey_serialize(
+            # Serialize UNCOMPRESSED pubkey
+            pubkey_ser_tuple = pysecp256k1.ec_pubkey_serialize(
                 secp256k1_ctx,
                 secp256k1_pubkey,
                 pysecp256k1.lib.SECP256K1_EC_UNCOMPRESSED)
+            pubkey_int = pubkey_ser_tuple[0]
+            pubkey_ser = pubkey_ser_tuple[1]
+            pubkeylen = pubkey_ser_tuple[2]
 
-            # Returns type char[] pointer to COMPRESSED public key byte array
+            # First tuple entry always returns 1
+            self.assertEqual(pubkey_int, 1)
+
+            # Second tuple entry returns type char[] pointer to UNCOMPRESSED
+            # public key byte array
             self.assertEqual(
                 pysecp256k1.ffi.typeof(pubkey_ser),
                 pysecp256k1.ffi.typeof('char[]'))
 
-            # Returns pointer to COMPRESSED public key byte array of size 65
             self.assertEqual(pysecp256k1.ffi.sizeof(pubkey_ser), 65)
+
+            # Third tuple entry returns type size_t* pointer to public key size
+            self.assertEqual(
+                pysecp256k1.ffi.typeof(pubkeylen),
+                pysecp256k1.ffi.typeof('size_t*'))
 
         # Errors if invalid context flag
         with self.assertRaises(TypeError) as err:

@@ -11,10 +11,10 @@ CONTEXT_FLAGS = [
 def context_create(flags):
     '''Create a secp256k1 context object.
     Args:
-        flag    (CONTEXT_FLAG):         which parts of the context to
+        flag    (int):                  which parts of the context to
                                         initialize
     Returns:
-        ctx     (secp256k1_context):    a newly created context object
+        ctx     (secp256k1_context*):   a newly created context object
     '''
     # Validate context flags
     if flags not in CONTEXT_FLAGS:
@@ -27,10 +27,10 @@ def context_create(flags):
 def context_clone(ctx):
     '''Copies a secp256k1 context object.
     Args:
-        ctx     (secp256k1_context):    an existing context to copy (cannot be
+        ctx     (secp256k1_context*):   an existing context to copy (cannot be
                                         NULL)
     Returns:
-        ctx     (secp256k1_context):    a newly created context object
+        ctx     (secp256k1_context*):   a newly created context object
     '''
     # Validate context
     utils.validate_context(ctx)
@@ -43,7 +43,7 @@ def context_destroy(ctx):
     '''Destroy a secp256k1 context object.
     This context pointer may not be used afterwards.
     Args:
-        ctx     (secp256k1_context):    an existing conect to destroy (cannot
+        ctx     (secp256k1_context*):   an existing conect to destroy (cannot
                                         be NULL)
     '''
     # Validate context
@@ -89,18 +89,24 @@ def ec_pubkey_parse(ctx, input):
 def ec_pubkey_serialize(ctx, pubkey, flags):
     '''Serialize a pubkey object into a serialized byte sequence.
     Args:
-        ctx     (secp256k1_context):    a secp256k1 context object
-        pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
-                                        containing an initialized public key
-        flags   (int):                  SECP256K1_EC_COMPRESSED if
-                                        serialization should be in compressed
-                                        format, otherwise
-                                        SECP256K1_EC_UNCOMPRESSED
+        ctx     (secp256k1_context*):       a secp256k1 context object
+        pubkey  (secp256k1_pubkey*):        a pointer to a secp256k1_pubkey
+                                            containing an initialized public
+                                            key
+        flags   (int):                      SECP256K1_EC_COMPRESSED if
+                                            serialization should be in
+                                            compressed format, otherwise
+                                            SECP256K1_EC_UNCOMPRESSED
     Returns:
-        output  (ctype 'char[33]'):     a pointer to a 65-byte (if
-                                        compressed==0) or 33-byte (if
-                                        compressed==1) byte array to place the
-                                        serialized key in
+        (int, ctype 'char[33]', size_t*):   (1,
+                                            a pointer to a 65-byte (if
+                                            compressed==0) or 33-byte (if
+                                            compressed==1) byte array to place
+                                            the serialized key in,
+                                            Pointer to an integer which is
+                                            initially set to the size of the
+                                            output, and is overwritten with the
+                                            written size)
     '''
     # Validate context
     utils.validate_context(ctx)
@@ -123,9 +129,8 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
     # and is overwritten with the written size
     outputlen = ffi.new('size_t *', publen)
 
-    if lib.secp256k1_ec_pubkey_serialize(
-            ctx, output, outputlen, pubkey, flags):
-        return output
+    return (lib.secp256k1_ec_pubkey_serialize(
+        ctx, output, outputlen, pubkey, flags), output, outputlen)
 
 
 def ecdsa_signature_parse_compact(ctx, sig, input64):
