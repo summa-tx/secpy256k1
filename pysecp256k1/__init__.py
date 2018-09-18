@@ -142,15 +142,94 @@ def ecdsa_signature_serialize_compact(ctx, output64, sig):
 
 
 def ecdsa_verify(ctx, sig, msg32, pubkey):
-    pass
+    '''Verify an ECDSA signature.
+    To avoid accepting malleable signatures, only ECDSA signatures in lower-S
+    form are accepted.
+    If you need to accept ECDSA signatures from sources that do not obey this
+    rule, apply secp256k1_ecdsa_signature_normalize to the signature prior to
+    validation, but be aware that doing so results in malleable signatures.
+    For details, see the comments for that function.
+    Args:
+        ctx (secp256k1_context*):           a secp256k1 context object,
+                                            initialized for verification
+        sig (secp256k1_ecdsa_signature*):   the signature being verified
+                                            (cannot be NULL)
+        msg32 (str):                        the 32-byte message hash being
+                                            verified (cannot be NULL)
+        pubkey (secp256k1_pubkey*):         pointer to an initialized public
+                                            key to verify with (cannot be NULL)
+    Returns: 1: correct signature
+             0: incorrect or unparseable signature
+    '''
+    # Validate context
+    validate_context(ctx)
+
+    # Validate pubkey
+    validate_public_key(pubkey)
+
+    # TODO: Validate sig
+    # TODO: Validate msg
+
+    if lib.sepc256k1_ecdsa_verify(ctx, sig, msg32, pubkey):
+        return True
+    else:
+        return False
 
 
 def ecdsa_signature_normalize(ctx, sigout, sigin):
     pass
 
 
-def ecdsa_sign(ctx, sig, msg32, seckey, noncefp, ndata):
-    pass
+def ecdsa_sign(ctx, msg32, seckey, noncefp, ndata):
+    '''Create an ECDSA signature.
+    The created signature is always in lower-S form. See
+    secp256k1_ecdsa_signature_normalize for more details.
+    Args:
+        ctx (secp256k1_context*):           a secp256k1 context object,
+                                            initialized for signing
+        msg32 (str):                        the 32-byte message hash being
+                                            signed (cannot be NULL)
+        seckey (bytes):                     pointer to a 32-byte secret key
+                                            (cannot be NULL)
+        noncefp (secp256k1_nonce_function): pointer to a nonce generation
+                                            function. If NULL,
+                                            secp256k1_nonce_function_default
+                                            is used
+        ndata (void*):                      pointer to arbitrary data used by
+                                            the nonce generation function (can
+                                            be NULL)
+    Returns:
+        sig (secp256k1_ecdsa_signature*):   pointer to an array where the
+                                            signature will be placed (cannot be
+                                            NULL)
+    '''
+
+    # Validate context
+    validate_context(ctx)
+
+    # Validate msg32
+    if not isinstance(msg32, bytes) or len(msg32) != 32:
+        raise ValueError('Invalid msg32. Must be 32-bytes.')
+
+    # Validate secret key
+    if not isinstance(seckey, bytes) or len(seckey) != 32:
+        raise ValueError('Invalid msg. Must be 32-bytes.')
+
+    # Validate noncefp
+    validate_noncefp(noncefp)
+
+    # Validate ndata
+    if ndata is not ffi.NULL:
+        print('do more ndata validation')
+        raise TypeError('Invalid ndata. Must be NULL.')
+
+    sig = ffi.new('secp256k1_ecdsa_signature *')
+
+    #  Returns: 1: signature created
+    #           0: the nonce generation function failed, or the private key was
+    #              invalid.
+    if lib.secp256k1_ecdsa_sign(ctx, sig, msg32, seckey, noncefp, ndata):
+        return sig
 
 
 def ec_seckey_verify(ctx, seckey):
@@ -230,7 +309,7 @@ def validate_context(ctx):
 def validate_public_key(pubkey):
     '''Checks that pubkey is a valid secp256k1_pubkey pointer.
     Args:
-        pubkey  (secp256k1_pubkey):     a secp256k1 context object
+        pubkey  (secp256k1_pubkey*):    pointer to secp256k1 context object
     Returns:
                 (True):                 if pubkey is valid, otherwise error
     '''
@@ -238,6 +317,38 @@ def validate_public_key(pubkey):
             pubkey,
             'secp256k1_pubkey *',
             'Invalid pubkey. Must be secp256k1_pubkey pointer.')
+
+
+def validate_signature(sig):
+    '''Checks that signature is a valid secp256k1_ecdsa_signature pointer.
+    Args:
+        sig (secp256k1_ecdsa_signature*):   pointer to secp256k1 ecdsa
+                                            signature object
+    Returns:
+        (True):                             if sig is valid, otherwise error
+    '''
+    return _validate_cdata_type(
+            sig,
+            'secp256k1_ecdsa_signature *',
+            'Invalid sig. Must be secp256k1_ecdsa_signature pointer.')
+
+
+def validate_noncefp(noncefp):
+    '''Checks that noncefpis a valid secp256k1_nonce_function pointer or NULL.
+    Args:
+        noncefp (secp256k1_nonce_function*):    pointer to secp256k1 nonce
+                                                generation function or NULL
+    Returns:
+        (True):                                 if noncefp is valid, otherwise
+                                                error
+    '''
+    if noncefp is ffi.NULL:
+        return True
+
+    return _validate_cdata_type(
+            noncefp,
+            'secp256k1_nonce_function *',
+            'Invalid noncefp. Must be secp256k1_nonce_function pointer.')
 
 
 def _validate_cdata_type(value, type_str, err_msg):

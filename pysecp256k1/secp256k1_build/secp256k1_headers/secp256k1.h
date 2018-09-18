@@ -39,6 +39,31 @@ typedef struct { unsigned char data[64]; } secp256k1_pubkey;
  */
 typedef struct { unsigned char data[64]; } secp256k1_ecdsa_signature;
 
+/** A pointer to a function to deterministically generate a nonce.
+ *
+ * Returns: 1 if a nonce was successfully generated. 0 will cause signing to fail.
+ * Out:     nonce32:   pointer to a 32-byte array to be filled by the function.
+ * In:      msg32:     the 32-byte message hash being verified (will not be NULL)
+ *          key32:     pointer to a 32-byte secret key (will not be NULL)
+ *          algo16:    pointer to a 16-byte array describing the signature
+ *                     algorithm (will be NULL for ECDSA for compatibility).
+ *          data:      Arbitrary data pointer that is passed through.
+ *          attempt:   how many iterations we have tried to find a nonce.
+ *                     This will almost always be 0, but different attempt values
+ *                     are required to result in a different nonce.
+ *
+ * Except for test cases, this function should compute some cryptographic hash of
+ * the message, the algorithm, the key and the attempt.
+ */
+typedef int (*secp256k1_nonce_function)(
+    unsigned char *nonce32,
+    const unsigned char *msg32,
+    const unsigned char *key32,
+    const unsigned char *algo16,
+    void *data,
+    unsigned int attempt
+);
+
 /** Flags to pass to secp256k1_context_create. */
 #define SECP256K1_CONTEXT_VERIFY ...
 #define SECP256K1_CONTEXT_SIGN ...
@@ -112,6 +137,54 @@ int secp256k1_ec_pubkey_serialize(
     size_t *outputlen,
     const secp256k1_pubkey* pubkey,
     unsigned int flags);
+
+/** Verify an ECDSA signature.
+ *
+ *  Returns: 1: correct signature
+ *           0: incorrect or unparseable signature
+ *  Args:    ctx:       a secp256k1 context object, initialized for verification.
+ *  In:      sig:       the signature being verified (cannot be NULL)
+ *           msg32:     the 32-byte message hash being verified (cannot be NULL)
+ *           pubkey:    pointer to an initialized public key to verify with (cannot be NULL)
+ *
+ * To avoid accepting malleable signatures, only ECDSA signatures in lower-S
+ * form are accepted.
+ *
+ * If you need to accept ECDSA signatures from sources that do not obey this
+ * rule, apply secp256k1_ecdsa_signature_normalize to the signature prior to
+ * validation, but be aware that doing so results in malleable signatures.
+ *
+ * For details, see the comments for that function.
+ */
+int secp256k1_ecdsa_verify(
+    const secp256k1_context* ctx,
+    const secp256k1_ecdsa_signature *sig,
+    const unsigned char *msg32,
+    const secp256k1_pubkey *pubkey
+);
+
+/** Create an ECDSA signature.
+ *
+ *  Returns: 1: signature created
+ *           0: the nonce generation function failed, or the private key was invalid.
+ *  Args:    ctx:    pointer to a context object, initialized for signing (cannot be NULL)
+ *  Out:     sig:    pointer to an array where the signature will be placed (cannot be NULL)
+ *  In:      msg32:  the 32-byte message hash being signed (cannot be NULL)
+ *           seckey: pointer to a 32-byte secret key (cannot be NULL)
+ *           noncefp:pointer to a nonce generation function. If NULL, secp256k1_nonce_function_default is used
+ *           ndata:  pointer to arbitrary data used by the nonce generation function (can be NULL)
+ *
+ * The created signature is always in lower-S form. See
+ * secp256k1_ecdsa_signature_normalize for more details.
+ */
+int secp256k1_ecdsa_sign(
+    const secp256k1_context* ctx,
+    secp256k1_ecdsa_signature *sig,
+    const unsigned char *msg32,
+    const unsigned char *seckey,
+    secp256k1_nonce_function noncefp,
+    const void *ndata
+);
 
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
