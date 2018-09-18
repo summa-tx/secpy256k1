@@ -244,6 +244,21 @@ int secp256k1_ecdsa_signature_serialize_der(
     size_t *outputlen,
     const secp256k1_ecdsa_signature* sig);
 
+/** Serialize an ECDSA signature in compact (64 byte) format.
+ *
+ *  Returns: 1
+ *  Args:   ctx:       a secp256k1 context object
+ *  Out:    output64:  a pointer to a 64-byte array to store the compact serialization
+ *  In:     sig:       a pointer to an initialized signature object
+ *
+ *  See secp256k1_ecdsa_signature_parse_compact for details about the encoding.
+ */
+int secp256k1_ecdsa_signature_serialize_compact(
+    const secp256k1_context* ctx,
+    unsigned char *output64,
+    const secp256k1_ecdsa_signature* sig);
+
+
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
  *          uniformly random 32-byte arrays, or if the resulting private key

@@ -230,12 +230,34 @@ def ecdsa_signature_serialize_der(ctx, sig, outputlen=74):
     # Pointer to a length integer
     outputlen = ffi.new('size_t *', outputlen)
 
+    # Serialize an ECDSA signature in DER format
     return (lib.secp256k1_ecdsa_signature_serialize_der(
         ctx, output, outputlen, sig), output, outputlen)
 
 
 def ecdsa_signature_serialize_compact(ctx, output64, sig):
-    pass
+    '''Serialize an ECDSA signature in compact (64 byte) format.
+    See secp256k1_ecdsa_signature_parse_compact for details about the encoding.
+    Args:
+        ctx (secp256k1_context*):           a secp256k1 context object
+        sig (secp256k1_ecdsa_signature*):   a pointer to an initialized
+                                            signature object
+    Returns:
+        (int, unsigned char):               (1,
+                                            a pointer to a 64-byte array to
+                                            store the compact serialization)
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate signature
+    utils.validate_signature(sig)
+
+    # Pointer to a 64-byte array to store the compact serialization
+    output64 = ffi.new('unsigned char[]', 64)
+
+    return (lib.secp256k1_ecdsa_signature_serialize_compact(
+        ctx, output64, sig), output64)
 
 
 def ecdsa_verify(ctx, sig, msg32, pubkey):
