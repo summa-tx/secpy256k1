@@ -53,6 +53,22 @@ def context_destroy(ctx):
     lib.secp256k1_context_destroy(ctx)
 
 
+def context_set_illegal_callback(ctx, fun, data):
+    pass
+
+
+def context_set_error_callback(ctx, fun, data):
+    pass
+
+
+def scratch_space_create(ctx, max_size):
+    pass
+
+
+def scratch_space_destroy(scratch):
+    pass
+
+
 def ec_pubkey_parse(ctx, input):
     '''Parse a variable-length public key into the pubkey object.
     This function supports parsing compressed (33 bytes, header byte 0x02 or
@@ -458,11 +474,44 @@ def ec_pubkey_create(ctx, seckey):
 
 
 def ec_privkey_negate(ctx, seckey):
-    pass
+    '''Negates a private key in place.
+    Args:
+        ctx     (secp256k1_context*):   a secp256k1 context object
+        seckey  (bytes):                pointer to a 32-byte private key to be
+                                        negated (cannot be NULL)
+    Returns:
+        (int, bytes):                   (1 always,
+                                        pointer to the 32-byte private key to
+                                        be negated (cannot be NULL))
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate secret key
+    utils.validate_secret_key_ser(seckey)
+
+    # Negate a private key in place
+    return (lib.secp256k1_ec_privkey_negate(ctx, seckey), seckey)
 
 
 def ec_pubkey_negate(ctx, pubkey):
-    pass
+    '''Negates a public key in place.
+    Args:
+        ctx     (secp256k1_context*):   a secp256k1 context object
+        pubkey  (secp256k1_pubkey*):    pointer to the public key to be negated
+                                        (cannot be NULL)
+    Returns:
+        (int, secp256k1_pubkey*):       (1 always,
+                                        pointer to the public key to be negated
+                                        (cannot be NULL))
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate public key
+    utils.validate_public_key(pubkey)
+
+    return (lib.secp256k1_ec_pubkey_negate(ctx, pubkey), pubkey)
 
 
 def ec_privkey_tweak_add(ctx, seckey, tweak):
@@ -499,11 +548,10 @@ def ec_privkey_tweak_add(ctx, seckey, tweak):
 def ec_pubkey_tweak_add(ctx, pubkey, tweak):
     ''' Tweak a public key by adding tweak times the generator to it.
     Args:
-        ctx     (secp256k1_context):    a secp256k1 context object
-        pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
-                                        containing an initialized public
-                                        key
-        tweak   (bytes):                a 32-byte tweak
+        ctx     (secp256k1_context*):   pointer to a context object (cannot be
+                                        NULL)
+        pubkey  (secp256k1_pubkey*):    pointer to a public key object
+        tweak   (bytes):                pointer to a 32-byte tweak
     Returns:
         (int, secp256k1_pubkey*):       (0 if the tweak was out of range
                                         (change of around 1 in 2^128 for
@@ -529,16 +577,111 @@ def ec_pubkey_tweak_add(ctx, pubkey, tweak):
 
 
 def ec_privkey_tweak_mul(ctx, seckey, tweak):
-    pass
+    '''Tweak a private key by multiplying it by a tweak.
+    Args:
+        ctx     (secp256k1_context*):   pointer to a context object (cannot be
+                                        NULL)
+        seckey  (bytes):                pointer to a 32-byte private key
+        tweak   (bytes):                pointer to a 32-byte tweak
+    Returns:
+        (int, seckey):                  (0 if the tweak was out of range
+                                        (chance of around 1 in 2^128 for
+                                        uniformly random 32-byte arrays, or
+                                        equal to zero. 1 otherwise,
+                                        pointer to a 32-byte private key)
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate secret key
+    utils.validate_secret_key_ser(seckey)
+
+    # Validate tweak
+    utils.validate_tweak_ser(tweak)
+
+    return (lib.secp256k1_ec_privkey_tweak_mul(ctx, seckey, tweak), seckey)
 
 
 def ec_pubkey_tweak_mul(ctx, pubkey, tweak):
-    pass
+    '''Tweak a public key by multiplying it by a tweak value.
+    Args:
+        ctx     (secp256k1_context*):   pointer to a context object
+                                        initialized for validation (cannot be
+                                        NULL)
+        pubkey  (secp2561_pubkey*):     pointer to a public key object
+        tweak   (bytes):                pointer to a 32-byte tweak
+    Returns:
+        (int, secp256k1_pubkey*):       (0 if the tweak was out of range
+                                        (chance of around 1 in 2^128 for
+                                        uniformly random 32-byte arrays, or
+                                        equal to zero. 1 otherwise,
+                                        pointer to a public key object)
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate public key
+    utils.validate_public_key(pubkey)
+
+    # Validate tweak
+    utils.validate_tweak_ser(tweak)
+
+    return (lib.secp256k1_ec_pubkey_tweak_mul(ctx, pubkey, tweak), pubkey)
 
 
 def context_randomize(ctx, seed32):
-    pass
+    '''Updates the context randomization to protect against side-channel leakage.
+
+    While secp256k1 code is written to be constant-time no matter what secret
+    values are, it's possible that a future compiler may output code which
+    isn't, and also that the CPU may not emit the same radio frequencies or
+    draw the same amount power for all values.
+
+    This function provides a seed which is combined into the blinding value:
+    that blinding value is added before each multiplication (and removed
+    afterwards) so that it does not affect function results, but shields
+    against attacks which rely on any input-dependent behaviour.
+
+    You should call this after secp256k1_context_create or
+    secp256k1_context_clone, and may call this repeatedly afterwards.
+
+    Args:
+        ctx     (secp256k1_context*):   pointer to a context object (cannot be
+                                        NULL)
+        seed32  (bytes):                pointer to a 32-byte random seed (NULL
+                                        resets to initial state)
+    Returns:
+        (int):                          1 if randomization successfully updated
+                                        0 if error
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate seed32
+    utils.validate_bytes_type(
+        seed32, [32], 'Invalid seed32. Must be 32-bytes.')
+
+    return lib.secp256k1_context_randomize(ctx, seed32)
 
 
-def ec_pubkey_combine(ctx, out, ins):
-    pass
+def ec_pubkey_combine(ctx, ins, n):
+    '''Add a number of public keys together.
+    Args:
+        ctx (secp256k1_context*):   pointer to a context object
+        ins (secp256k1_pubkey*[]):  pointer to array of pointers to public keys
+                                    (cannot be NULL)
+        n   (int):                  the number of public keys to add together
+                                    (must be at least 1)
+    Returns:
+        (int, secp256k1_pubkey*):   (1: the sum of the public keys is valid
+                                    0: the sum of the public keys is not valid,
+                                    pointer to a public key object for placing
+                                    the resulting public key (cannot be NULL))
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Pointer to a public key object for placing the resulting public key
+    out = ffi.new('secp256k1_pubkey *')
+
+    return (lib.secp256k1_ec_pubkey_combine(ctx, out, ins, n), out)

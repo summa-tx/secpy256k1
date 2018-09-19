@@ -18,6 +18,19 @@
  */
 typedef struct secp256k1_context_struct secp256k1_context;
 
+/** Opaque data structure that holds rewriteable "scratch space"
+ *
+ *  The purpose of this structure is to replace dynamic memory allocations,
+ *  because we target architectures where this may not be available. It is
+ *  essentially a resizable (within specified parameters) block of bytes,
+ *  which is initially created either by memory allocation or TODO as a pointer
+ *  into some fixed rewritable space.
+ *
+ *  Unlike the context object, this cannot safely be shared between threads
+ *  without additional synchronization logic.
+ */
+typedef struct secp256k1_scratch_space_struct secp256k1_scratch_space;
+
 /** Opaque data structure that holds a parsed and valid public key.
  *
  *  The exact representation of data inside is implementation defined and not
@@ -95,6 +108,69 @@ secp256k1_context* secp256k1_context_clone(const secp256k1_context* ctx);
  *  Args:   ctx: an existing context to destroy (cannot be NULL)
  */
 void secp256k1_context_destroy(secp256k1_context* ctx);
+
+/** Set a callback function to be called when an illegal argument is passed to
+ *  an API call. It will only trigger for violations that are mentioned
+ *  explicitly in the header.
+ *
+ *  The philosophy is that these shouldn't be dealt with through a
+ *  specific return value, as calling code should not have branches to deal with
+ *  the case that this code itself is broken.
+ *
+ *  On the other hand, during debug stage, one would want to be informed about
+ *  such mistakes, and the default (crashing) may be inadvisable.
+ *  When this callback is triggered, the API function called is guaranteed not
+ *  to cause a crash, though its return value and output arguments are
+ *  undefined.
+ *
+ *  Args: ctx:  an existing context object (cannot be NULL)
+ *  In:   fun:  a pointer to a function to call when an illegal argument is
+ *              passed to the API, taking a message and an opaque pointer
+ *              (NULL restores a default handler that calls abort).
+ *        data: the opaque pointer to pass to fun above.
+ */
+void secp256k1_context_set_illegal_callback(
+    secp256k1_context* ctx,
+    void (*fun)(const char* message, void* data),
+    const void* data);
+
+/** Set a callback function to be called when an internal consistency check
+ *  fails. The default is crashing.
+ *
+ *  This can only trigger in case of a hardware failure, miscompilation,
+ *  memory corruption, serious bug in the library, or other error would can
+ *  otherwise result in undefined behaviour. It will not trigger due to mere
+ *  incorrect usage of the API (see secp256k1_context_set_illegal_callback
+ *  for that). After this callback returns, anything may happen, including
+ *  crashing.
+ *
+ *  Args: ctx:  an existing context object (cannot be NULL)
+ *  In:   fun:  a pointer to a function to call when an internal error occurs,
+ *              taking a message and an opaque pointer (NULL restores a default
+ *              handler that calls abort).
+ *        data: the opaque pointer to pass to fun above.
+ */
+void secp256k1_context_set_error_callback(
+    secp256k1_context* ctx,
+    void (*fun)(const char* message, void* data),
+    const void* data);
+
+/** Create a secp256k1 scratch space object.
+ *
+ *  Returns: a newly created scratch space.
+ *  Args: ctx:  an existing context object (cannot be NULL)
+ *  In:   max_size: maximum amount of memory to allocate
+ */
+secp256k1_scratch_space* secp256k1_scratch_space_create(
+ 	const secp256k1_context* ctx,
+    size_t max_size);
+
+/** Destroy a secp256k1 scratch space.
+ *
+ *  The pointer may not be used afterwards.
+ *  Args:   scratch: space to destroy
+ */
+void secp256k1_scratch_space_destroy(secp256k1_scratch_space* scratch);
 
 /** Parse a variable-length public key into the pubkey object.
  *
@@ -326,6 +402,24 @@ int secp256k1_ec_pubkey_create(
     secp256k1_pubkey *pubkey,
     const unsigned char *seckey);
 
+/** Negates a private key in place.
+ *
+ *  Returns: 1 always
+ *  Args:   ctx:        pointer to a context object
+ *  In/Out: seckey:     pointer to the 32-byte private key to be negated (cannot be NULL)
+ */
+int secp256k1_ec_privkey_negate(const secp256k1_context* ctx, unsigned char *seckey);
+
+/** Negates a public key in place.
+ *
+ *  Returns: 1 always
+ *  Args:   ctx:        pointer to a context object
+ *  In/Out: pubkey:     pointer to the public key to be negated (cannot be NULL)
+ */
+int secp256k1_ec_pubkey_negate(
+    const secp256k1_context* ctx,
+    secp256k1_pubkey *pubkey);
+
 
 /** Tweak a private key by adding tweak to it.
  * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
@@ -356,3 +450,64 @@ int secp256k1_ec_pubkey_tweak_add(
     const secp256k1_context* ctx,
     secp256k1_pubkey *pubkey,
     const unsigned char *tweak);
+
+/** Tweak a private key by multiplying it by a tweak.
+ * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
+ *          uniformly random 32-byte arrays, or equal to zero. 1 otherwise.
+ * Args:   ctx:    pointer to a context object (cannot be NULL).
+ * In/Out: seckey: pointer to a 32-byte private key.
+ * In:     tweak:  pointer to a 32-byte tweak.
+ */
+int secp256k1_ec_privkey_tweak_mul(
+    const secp256k1_context* ctx,
+    unsigned char *seckey,
+    const unsigned char *tweak);
+
+/** Tweak a public key by multiplying it by a tweak value.
+ * Returns: 0 if the tweak was out of range (chance of around 1 in 2^128 for
+ *          uniformly random 32-byte arrays, or equal to zero. 1 otherwise.
+ * Args:    ctx:    pointer to a context object initialized for validation
+ *                 (cannot be NULL).
+ * In/Out:  pubkey: pointer to a public key obkect.
+ * In:      tweak:  pointer to a 32-byte tweak.
+ */
+int secp256k1_ec_pubkey_tweak_mul(
+    const secp256k1_context* ctx,
+    secp256k1_pubkey *pubkey,
+    const unsigned char *tweak);
+
+/** Updates the context randomization to protect against side-channel leakage.
+ *  Returns: 1: randomization successfully updated
+ *           0: error
+ *  Args:    ctx:       pointer to a context object (cannot be NULL)
+ *  In:      seed32:    pointer to a 32-byte random seed (NULL resets to initial state)
+ *
+ * While secp256k1 code is written to be constant-time no matter what secret
+ * values are, it's possible that a future compiler may output code which isn't,
+ * and also that the CPU may not emit the same radio frequencies or draw the same
+ * amount power for all values.
+ *
+ * This function provides a seed which is combined into the blinding value: that
+ * blinding value is added before each multiplication (and removed afterwards) so
+ * that it does not affect function results, but shields against attacks which
+ * rely on any input-dependent behaviour.
+ *
+ * You should call this after secp256k1_context_create or
+ * secp256k1_context_clone, and may call this repeatedly afterwards.
+ */
+int secp256k1_context_randomize(secp256k1_context* ctx, const unsigned char *seed32);
+
+/** Add a number of public keys together.
+ *  Returns: 1: the sum of the public keys is valid.
+ *           0: the sum of the public keys is not valid.
+ *  Args:   ctx:        pointer to a context object
+ *  Out:    out:        pointer to a public key object for placing the resulting public key
+ *                      (cannot be NULL)
+ *  In:     ins:        pointer to array of pointers to public keys (cannot be NULL)
+ *          n:          the number of public keys to add together (must be at least 1)
+ */
+int secp256k1_ec_pubkey_combine(
+    const secp256k1_context* ctx,
+    secp256k1_pubkey *out,
+    const secp256k1_pubkey * const * ins,
+    size_t n);
