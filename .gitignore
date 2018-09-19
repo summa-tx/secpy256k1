@@ -4,5 +4,8 @@ build/
 .eggs/
 *.pyc
 *.egg-info
-
 .pytest_cache/
+
+_secp256k1.o
+_secp256k1.c
+_secp256k1.cypthon-37m-darwin.so
