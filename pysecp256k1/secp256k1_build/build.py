@@ -1,13 +1,12 @@
-import pkg_resources
+import os
 from cffi import FFI
 
 ffibuilder = FFI()
+dir_path = os.path.dirname(os.path.realpath(__file__))
+secp256k1_header = os.path.join(dir_path, 'secp256k1_headers/secp256k1.h')
 
-secp256k1_header = pkg_resources.resource_string(
-    'pysecp256k1',
-    'secp256k1_build/secp256k1_headers/secp256k1.h').decode('utf-8')
-
-ffibuilder.cdef(secp256k1_header)
+with open(secp256k1_header, 'rt') as h:
+    ffibuilder.cdef(h.read())
 
 ffibuilder.set_source(
         "_secp256k1",
