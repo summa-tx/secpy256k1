@@ -13,7 +13,6 @@ ffibuilder.set_source(
         """
         #include <secp256k1.h>
         """,
-        library_dirs=['secp256k1/.libs'],
         libraries=['secp256k1'])
 
 ffibuilder.compile(verbose=True)
