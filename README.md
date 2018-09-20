@@ -1,4 +1,4 @@
-## pysecp256k1: Python bindings for bitcoin core libsec256k1. SUPER WIP.
+## pysecp256k1: Python bindings for bitcoin core libsecp256k1. SUPER WIP.
 
 ### Setup and Build
 
