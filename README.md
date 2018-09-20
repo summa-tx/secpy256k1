@@ -12,9 +12,12 @@ Build submodule bitcoin-core [libsecp256k1 repo](https://github.com/bitcoin-core
 
 ```
 $ cd ./secp256k1
+$ git submodule init
+$ git submodule update
 $ ./autogen.sh
 $ ./configure --enable-module-ecdh --enable-module-recovery --enable-experimental
 $ make
+$ sudo make install ##for OS X
 ```
 
 Build `_secp256k1` bindings.
@@ -28,13 +31,12 @@ The `_secp256k1` bindings are `_secp256k1.o`, `_secp256k1.c`, and `_sec256k1.cyp
 Test.
 
 ```
-$ pipenv pytest
+$ pipenv run pytest
 ```
 
 ### Example File
 Run the example file
 
 ```
-$ pipenv run python ./pysecp256k1/examples/ex_content.py
+$ pipenv run python ./pysecp256k1/examples/ex_script.py
 ```
-
