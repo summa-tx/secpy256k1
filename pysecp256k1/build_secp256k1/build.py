@@ -3,16 +3,22 @@ from cffi import FFI
 
 ffibuilder = FFI()
 dir_path = os.path.dirname(os.path.realpath(__file__))
-secp256k1_header = os.path.join(dir_path, 'secp256k1_headers/secp256k1.h')
+secp256k1_header = []
+secp256k1_header.append(os.path.join(dir_path, 'secp256k1_headers/secp256k1_cdef.h'))
+#  secp256k1_header.append(os.path.join(dir_path, 'secp256k1_headers/secp256k1_ecdh_cdef.h'))
 
-with open(secp256k1_header, 'rt') as h:
-    ffibuilder.cdef(h.read())
+for header in secp256k1_header:
+    with open(header, 'rt') as h:
+        ffibuilder.cdef(h.read())
 
 ffibuilder.set_source(
         "_secp256k1",
         """
-        #include <secp256k1.h>
+        #include "secp256k1.h"
+        //#include "secp256k1_ecdh.h"
         """,
+        include_dirs=['/Users/rachelrybarczyk/Projects/Summa.One/Integral/pysecp256k1/secp256k1/include'],
+        library_dirs=['/Users/rachelrybarczyk/Projects/Summa.One/Integral/pysecp256k1/secp256k1/.libs'],
         libraries=['secp256k1'])
 
 ffibuilder.compile(verbose=True)
