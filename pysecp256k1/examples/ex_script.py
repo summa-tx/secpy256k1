@@ -62,5 +62,3 @@ pysecp256k1.ec_pubkey_create(secp256k1_ctx, os.urandom(32))
 pysecp256k1.ec_privkey_negate(secp256k1_ctx, os.urandom(32))
 
 pysecp256k1.ec_privkey_tweak_mul(secp256k1_ctx, os.urandom(32), tweak)
-
-print('o hai marc')  # for testing
