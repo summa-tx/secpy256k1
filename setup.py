@@ -2,12 +2,12 @@ import setuptools
 
 setuptools.setup(
     name='pysecp256k1',
-    version="0.0.1",
+    version="0.1.0",
     author="RJ Rybarczyk",
     author_email="rj64@protonmail.com",
     description="Python ffi bindings to secp256k1 bitcoin-core library.",
     url="https://github.com/rrybarczyk/pysecp256k1.git",
-    packages=setuptools.find_packages(exclude=('secp256k1_build', 'sec256k1_build.*', 'libsecp256k1')),
+    packages=setuptools.find_packages(exclude=('build_secp256k1', 'build_sec256k1.*', 'libsecp256k1')),
     install_requires=['cffi>=1.11.5'],
     setup_requires=['cffi>=1.11.5'],
     package_dir={'pysecp256k1': 'pysecp256k1'},
