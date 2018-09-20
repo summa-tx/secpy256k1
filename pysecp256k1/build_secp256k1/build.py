@@ -17,8 +17,8 @@ ffibuilder.set_source(
         #include "secp256k1.h"
         //#include "secp256k1_ecdh.h"
         """,
-        include_dirs=['/Users/rachelrybarczyk/Projects/Summa.One/Integral/pysecp256k1/secp256k1/include'],
-        library_dirs=['/Users/rachelrybarczyk/Projects/Summa.One/Integral/pysecp256k1/secp256k1/.libs'],
+        include_dirs=['./secp256k1/include'],
+        library_dirs=['./secp256k1/.libs'],
         libraries=['secp256k1'])
 
 ffibuilder.compile(verbose=True)
