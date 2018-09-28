@@ -47,9 +47,9 @@ def validate_context(ctx):
         (True):                     if ctx is valid, otherwise error
     '''
     return validate_cdata_type(
-            ctx,
-            'struct secp256k1_context_struct *',
-            'Invalid context. Must be secp256k1_context_struct pointer.')
+        ctx,
+        'struct secp256k1_context_struct *',
+        'Invalid context. Must be secp256k1_context_struct pointer.')
 
 
 def validate_public_key(pubkey):
@@ -60,9 +60,9 @@ def validate_public_key(pubkey):
         (True):                         if pubkey is valid, otherwise error
     '''
     return validate_cdata_type(
-            pubkey,
-            'secp256k1_pubkey *',
-            'Invalid pubkey. Must be secp256k1_pubkey pointer.')
+        pubkey,
+        'secp256k1_pubkey *',
+        'Invalid pubkey. Must be secp256k1_pubkey pointer.')
 
 
 def validate_signature(sig):
@@ -74,9 +74,9 @@ def validate_signature(sig):
         (True):                             if sig is valid, otherwise error
     '''
     return validate_cdata_type(
-            sig,
-            'secp256k1_ecdsa_signature *',
-            'Invalid sig. Must be secp256k1_ecdsa_signature pointer.')
+        sig,
+        'secp256k1_ecdsa_signature *',
+        'Invalid sig. Must be secp256k1_ecdsa_signature pointer.')
 
 
 def validate_noncefp(noncefp):
@@ -92,9 +92,9 @@ def validate_noncefp(noncefp):
         return True
 
     return validate_cdata_type(
-            noncefp,
-            'secp256k1_nonce_function *',
-            'Invalid noncefp. Must be secp256k1_nonce_function pointer.')
+        noncefp,
+        'secp256k1_nonce_function *',
+        'Invalid noncefp. Must be secp256k1_nonce_function pointer.')
 
 
 def validate_secret_key_ser(seckey):
@@ -105,7 +105,7 @@ def validate_secret_key_ser(seckey):
         (True):                 if seckey is valid, otherwise error
     '''
     return validate_bytes_type(
-            seckey, [32], 'Invalid seckey. Must be 32-bytes.')
+        seckey, [32], 'Invalid seckey. Must be 32-bytes.')
 
 
 def validate_public_key_ser(pubkey):
@@ -116,7 +116,7 @@ def validate_public_key_ser(pubkey):
         (True):             if pubkey is valid, otherwise error
     '''
     return validate_bytes_type(
-            pubkey, [33, 65], 'Invalid pubkey. Must be 33- or 65-bytes.')
+        pubkey, [33, 65], 'Invalid pubkey. Must be 33- or 65-bytes.')
 
 
 def validate_signature_ser(sig):
@@ -161,7 +161,7 @@ def validate_ndata(ndata):
         (True):             if ndata is valid, otherwise error
     '''
     return validate_cdata_type(
-            value=ndata,
-            type_str=ffi.NULL,
-            err_msg='Invalid ndata. Must be valid cdata type or NULL.',
-            null_flag=True)
+        value=ndata,
+        type_str=ffi.NULL,
+        err_msg='Invalid ndata. Must be valid cdata type or NULL.',
+        null_flag=True)
