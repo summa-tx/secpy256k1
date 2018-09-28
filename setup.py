@@ -7,14 +7,11 @@ setuptools.setup(
     author_email="rj64@protonmail.com",
     description="Python ffi bindings to secp256k1 bitcoin-core library.",
     url="https://github.com/rrybarczyk/pysecp256k1.git",
-    packages=setuptools.find_packages(exclude=('build_secp256k1', 'build_sec256k1.*', 'libsecp256k1')),
+    packages=setuptools.find_packages(),
     install_requires=['cffi>=1.11.5'],
+    cffi_modules=['pysecp256k1/build_secp256k1/build.py:ffibuilder'],
     setup_requires=['cffi>=1.11.5'],
-    package_dir={'pysecp256k1': 'pysecp256k1'},
-    package_data={
-        'pysecp256k1': ['pysecp256k1/secp256k1_build/secp256k1_headers/secp256k1.h']
-    },
-    ext_package='pysecp256k1',
+    include_package_data=True,
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

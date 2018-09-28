@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 cffi = ">=1.11.5"
-"pysecp256k1" = {editable = true, path = "."}
+"pysecp256k1" = {path = "."}
 pytest = "*"
 "flake8" = "*"
 
