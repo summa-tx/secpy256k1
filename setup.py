@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='pysecp256k1',
-    version="0.1.5",
+    version="0.1.6",
     author="RJ Rybarczyk",
     author_email="rj64@protonmail.com",
     description="Python ffi bindings to secp256k1 bitcoin-core library.",

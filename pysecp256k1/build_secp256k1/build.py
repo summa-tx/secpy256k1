@@ -15,7 +15,7 @@ ffibuilder.set_source(
         "_pysecp256k1",
         """
         #include "secp256k1.h"
-        //#include "secp256k1_ecdh.h"
+        #include "secp256k1_ecdh.h"
         """,
         include_dirs=['~/secp256k1/include'],  # secp256k1 install loc
         library_dirs=['~/secp256k1/.libs'],
