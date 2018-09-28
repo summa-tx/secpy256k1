@@ -130,7 +130,6 @@
             "version": "==1.6.0"
         },
         "pysecp256k1": {
-            "editable": true,
             "path": "."
         },
         "pytest": {
