@@ -1,17 +1,17 @@
-## pysecp256k1: Python bindings for bitcoin core libsecp256k1. SUPER WIP. Only tested on Mac OS X.
+## secpy256k1: Python bindings for bitcoin core libsecp256k1. SUPER WIP. Only tested on Mac OS X.
 
 ### Quick Build
 If you have `libsecp256k1.dylib` installed (/usr/local/lib/), and `cffi` >=1.11.5, in python 3.7:
 
 ```
-$pip install pysecp256k1
+$pip install secpy256k1
 ```
 
 ### Full Setup and Build
 
 ```
-$ git clone git@github.com:rrybarczyk/pysecp256k1.git
-$ cd ./pysecp256k1
+$ git clone git@github.com:rrybarczyk/secpy256k1.git
+$ cd ./secpy256k1
 $ pipenv install
 ```
 
@@ -27,13 +27,13 @@ $ make
 $ sudo make install ##NB! for OS X
 ```
 
-Build `_pysecp256k1` bindings.
+Build `_secpy256k1` bindings.
 
 ```
-$ pipenv run python ./pysecp256k1/build_secp256k1/build.py
+$ pipenv run python ./secpy256k1/build_secp256k1/build.py
 ```
 
-The `_pysecp256k1` bindings are `_pysecp256k1.o`, `_pysecp256k1.c`, and `_pysec256k1.cypython-37m-darwin.so` and should be located at the top level directory after running the `build.py` script.
+The `_secpy256k1` bindings are `_secpy256k1.o`, `_secpy256k1.c`, and `_pysec256k1.cypython-37m-darwin.so` and should be located at the top level directory after running the `build.py` script.
 
 Test.
 
@@ -45,5 +45,5 @@ $ pipenv run pytest
 Run the example file
 
 ```
-$ pipenv run python ./pysecp256k1/examples/ex_script.py
+$ pipenv run python ./secpy256k1/examples/ex_script.py
 ```

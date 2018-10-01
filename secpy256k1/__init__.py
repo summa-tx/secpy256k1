@@ -1,5 +1,5 @@
-from pysecp256k1 import utils
-from _pysecp256k1 import lib, ffi
+from secpy256k1 import utils
+from _secpy256k1 import lib, ffi
 
 CONTEXT_FLAGS = [
     lib.SECP256K1_CONTEXT_VERIFY,
