@@ -1,5 +1,5 @@
-from pysecp256k1 import utils
-from _pysecp256k1 import lib, ffi
+from secpy256k1 import utils
+from _secpy256k1 import lib, ffi
 
 CONTEXT_FLAGS = [
     lib.SECP256K1_CONTEXT_VERIFY,
@@ -664,24 +664,65 @@ def context_randomize(ctx, seed32):
     return lib.secp256k1_context_randomize(ctx, seed32)
 
 
-def ec_pubkey_combine(ctx, ins, n):
+def ec_pubkey_combine(ctx, pubkeys):
     '''Add a number of public keys together.
     Args:
-        ctx (secp256k1_context*):   pointer to a context object
-        ins (secp256k1_pubkey*[]):  pointer to array of pointers to public keys
-                                    (cannot be NULL)
-        n   (int):                  the number of public keys to add together
-                                    (must be at least 1)
+        ctx	(secp256k1_context*):   pointer to a context object
+        pubkeys	(list):			list of pubkeys to add together
     Returns:
-        (int, secp256k1_pubkey*):   (1: the sum of the public keys is valid
-                                    0: the sum of the public keys is not valid,
-                                    pointer to a public key object for placing
-                                    the resulting public key (cannot be NULL))
+        (int, secp256k1_pubkey*):   	(1: the sum of the public keys is valid
+                                        0: the sum of the public keys is not
+                                        valid,
+                                        pointer to a public key object for
+                                        placing the resulting public key
+                                        (cannot be NULL))
     '''
     # Validate context
     utils.validate_context(ctx)
+
+    # Number of public keys to add together
+    n = len(pubkeys)
+
+    # Pointer to array of pointers to public keys (cannot be null)
+    ins = ffi.new('secp256k1_pubkey[]', n)
+    ins = ffi.new(
+        'secp256k1_pubkey*[]',
+        [pk.as_cffi_pointer() for pk in pubkeys])
 
     # Pointer to a public key object for placing the resulting public key
     out = ffi.new('secp256k1_pubkey *')
 
     return (lib.secp256k1_ec_pubkey_combine(ctx, out, ins, n), out)
+
+
+def ecdh(ctx, pubkey, privkey):
+    '''Compute an EC Diffie-Hellman secret in constant time
+    Args:
+        ctx     (secp256k1_context*):   pointer to a context object (cannot be
+                                        NULL)
+        pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
+                                        containing an initialized public key
+        privkey (bytes):                a 32-byte scalar with which to multiply
+                                        the point
+    Returns:
+        (int, bytes):                  (1: exponentiation was successful
+                                        0: scalar was invalid (zero or
+                                        overflow),
+                                        a 32-byte array which will be populated
+                                        by an ECDH secret computed from the
+                                        point and scalar
+    '''
+    # Validate context
+    utils.validate_context(ctx)
+
+    # Validate public key
+    utils.validate_public_key(pubkey)
+
+    # Validate serialized private key
+    utils.validate_secret_key_ser(privkey)
+
+    # A 32-byte array which will be populated by an ECDH secret computed from
+    # the point and scalar
+    result = ffi.new('char[]', 32)
+
+    return (lib.secp256k1_ecdh(ctx, result, pubkey, privkey), result)

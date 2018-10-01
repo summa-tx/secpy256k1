@@ -1,8 +1,8 @@
 ## TODO: this is...?
 
 
-include pysecp256k1/examples/ex_script.py
-include pysecp256k1/tests/ *.py
-recursive-include pysecp256k1/build_secp256k1/ *
-recursive-include pysecp256k1/build_secp256k1/secp256k1_headers *
+include secpy256k1/examples/ex_script.py
+include secpy256k1/tests/ *.py
+recursive-include secpy256k1/build_secp256k1/ *
+recursive-include secpy256k1/build_secp256k1/secp256k1_headers *
 recursive-include secp256k1/ *
