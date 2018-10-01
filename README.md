@@ -55,7 +55,7 @@ Build `_riemann_secp256k1` bindings.
 $ pipenv run python ./riemann_secp256k1/build_secp256k1/build.py
 ```
 
-The `_riemann_secp256k1` bindings are `_riemann_secp256k1.o`, `_riemann_secp256k1.c`, and `_pysec256k1.cypython-37m-darwin.so` and should be located at the top level directory after running the `build.py` script.
+The `_riemann_secp256k1` bindings are `_riemann_secp256k1.o`, `_riemann_secp256k1.c`, and `_riemann_secp256k1.cypython-37m-darwin.so` and should be located at the top level directory after running the `build.py` script.
 
 Install dependencies and build `_riemann_secp256k1` bindings:
 
