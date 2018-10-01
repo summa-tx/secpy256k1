@@ -5,8 +5,9 @@ build/
 *.pyc
 *.egg-info
 .pytest_cache/
+Pipfile.lock
 
-_pysecp256k1.o
-_pysecp256k1.c
-_pysecp256k1.cpython-37m-darwin.so
-_pysecp256k1.abi3.so
+_riemann_secp256k1.o
+_riemann_secp256k1.c
+_riemann_secp256k1.cpython-37m-darwin.so
+_riemann_secp256k1.abi3.so

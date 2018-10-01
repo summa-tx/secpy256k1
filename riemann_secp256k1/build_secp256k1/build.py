@@ -15,7 +15,7 @@ for header in secp256k1_header:
         ffibuilder.cdef(h.read())
 
 ffibuilder.set_source(
-    "_pysecp256k1",  # This enters the namespace automatically.
+    "_riemann_secp256k1",  # This enters the namespace automatically.
     """
     #include "secp256k1.h"
     #include "secp256k1_ecdh.h"

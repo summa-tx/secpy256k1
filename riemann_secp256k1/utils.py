@@ -1,4 +1,4 @@
-from _pysecp256k1 import ffi
+from _riemann_secp256k1 import ffi
 
 
 def validate_cdata_type(value, type_str, err_msg, null_flag=False):
