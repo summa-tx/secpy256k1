@@ -184,7 +184,7 @@ func_ret, secp256k1_pubkey = riemann_secp256k1.ec_pubkey_combine(ctx=secp256k1_c
 1. ec_seckey_verify
 
 
-### Tweaking
+#### Tweaking
 
 Define a tweak:
 ```
@@ -218,5 +218,3 @@ Compute an ECDH secret in constant time:
 ```
 func_ret, ecdh_secret = riemann_secp256k1.ecdh(ctx=secp256k1_ctx, pubkey=secp256k1_pubkey, privkey=priv_key)
 ```
-
-
