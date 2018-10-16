@@ -4,10 +4,10 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-cffi = ">=1.11.5"
+cffi = "==1.11.5"
 "secpy256k1" = {path = "."}
-pytest = "*"
-"flake8" = "*"
+pytest = "==3.8.1"
+"flake8" = "==3.5.0"
 
 [dev-packages]
 
