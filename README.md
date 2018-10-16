@@ -1,10 +1,10 @@
 # secpy256k1: secp256k1 Lower Level API
+NOTE: THIS LIBRARY HAS ONLY BEEN TESTED ON MACOSX. AND IT HAS BEEN BARELY TESTED REALLY AT ALL.
 
 This library is designed to directly mimic the functionality of bitcoin-cores's [libsecp256k1](https://github.com/bitcoin-core/secp256k1.git) library. It is designed to be a lower level wrapper around libsecp256k1 so it can be be easily integrated into other projects.
 
 The CFFI library is used to create the Python bindings.
 
-NOTE: THIS LIBRARY HAS ONLY BEEN TESTED ON MACOSX.
 
 
 ## Quick Install (MacOSX ONLY)

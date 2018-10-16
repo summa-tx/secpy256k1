@@ -5,6 +5,7 @@ build/
 *.pyc
 *.egg-info
 .pytest_cache/
+Pipfile.lock
 
 _secpy256k1.o
 _secpy256k1.c
