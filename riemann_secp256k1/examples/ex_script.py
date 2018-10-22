@@ -21,12 +21,22 @@ output = output_tuple[1]
 ouputlen = output_tuple[2]
 pubkey_ser = bytes(riemann_secp256k1.ffi.buffer(output))
 
+# Pubkey Tweak Add
 pubkey_tweak_tuple = riemann_secp256k1.ec_pubkey_tweak_add(
         secp256k1_ctx,
         secp256k1_pubkey_tuple[1],
         tweak)
 pubkey_tweak = pubkey_tweak_tuple[1]
-pubkey_tweak_hex = bytes(riemann_secp256k1.ffi.buffer(pubkey_tweak)).hex()
+output_tweak_tuple = riemann_secp256k1.ec_pubkey_serialize(
+        secp256k1_ctx,
+        secp256k1_pubkey_tuple[1],
+        compression_flag)
+output_tweak_int = output_tweak_tuple[0]
+output_tweak = output_tweak_tuple[1]
+ouputlen_tweak = output_tweak_tuple[2]
+pubkey_tweak_ser = bytes(riemann_secp256k1.ffi.buffer(output_tweak))
+pubkey_tweak_hex = pubkey_tweak_ser.hex()
+
 
 flags = riemann_secp256k1.lib.SECP256K1_CONTEXT_SIGN
 secp256k1_ctx = riemann_secp256k1.context_create(flags)
