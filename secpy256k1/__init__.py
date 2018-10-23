@@ -173,7 +173,7 @@ def ecdsa_signature_parse_compact(ctx, input64):
     utils.validate_context(ctx)
 
     # Pointer to a signature object
-    sig = ffi.new('sepc256k1_ecdsa_signature *')
+    sig = ffi.new('secp256k1_ecdsa_signature *')
 
     # Parse an ECDSA signature in compact (64 bytes) format
     return (lib.secp256k1_ecdsa_signature_parse_compact(ctx, sig, input64),
