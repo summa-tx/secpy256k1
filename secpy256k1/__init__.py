@@ -173,7 +173,7 @@ def ecdsa_signature_parse_compact(ctx, input64):
     utils.validate_context(ctx)
 
     # Pointer to a signature object
-    sig = ffi.new('sepc256k1_ecdsa_signature *')
+    sig = ffi.new('secp256k1_ecdsa_signature *')
 
     # Parse an ECDSA signature in compact (64 bytes) format
     return (lib.secp256k1_ecdsa_signature_parse_compact(ctx, sig, input64),
@@ -285,7 +285,8 @@ def ecdsa_verify(ctx, sig, msg32, pubkey):
     validation, but be aware that doing so results in malleable signatures.
     For details, see the comments for that function.
     Args:
-        ctx     (secp256k1_context*):           a secp256k1 context object
+        ctx     (secp256k1_context*):           a secp256k1 context object,
+                                                initialized for verification
         sig     (secp256k1_ecdsa_signature*):   the signature being verified
                                                 (cannot be NULL)
         msg32   (bytes):                        the 32-byte message hash being

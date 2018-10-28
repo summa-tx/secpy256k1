@@ -70,14 +70,42 @@ $ pipenv run python ./secpy256k1/examples/ex_script.py
 ```
 
 ## API
-### Context
 
-Barring the `context_create` function, the first argument to each function is a `secp256k1_context` object which is set with one of the three following context flags:
-1. `SECP256K1_CONTEXT_VERIFY`
-1. `SECP256K1_CONTEXT_SIGN`
-1. `SECP256K1_CONTEXT_NONE`
+### Functions and Context Initialzation
 
-Set the context flag:
+Barring `context_create`, the first argument to each function is a `secp256k1_context` object. The context object is initialized as `SECP256K1_CONTEXT_NONE`, `SECP256K1_CONTEXT_VERIFY`, or `SECP256K1_CONTEXT_SIGN`. 
+
+For functions that are context agnostic, it is customary to use `SECP256K1_NONE`. These functions are:
+- `context_destroy` Destroy a secp256k1 context object.
+- `context_clone` Copies a secp256k1 context object.
+- `context_set_illegal_callback` (TODO) Set a callback function to be called when an illegal argument is passed to an API call. It will only trigger for violations that are mentioned explicitly in the header.
+- `context_set_error_callback` (TODO) Set a callback function to be called when an internal consistency check fails. The default is crashing.
+- `scratch_space_create` (TODO) Create a secp256k1 scratch space object.
+- `ec_pubkey_parse` Parse a variable-length public key into the pubkey object.
+- `ec_pubkey_serialize` Serialize a pubkey object into a serialized byte sequence.
+- `ecdsa_signature_parse_compact` Parse an ECDSA signature in compact (64 bytes) format.
+- `ecdsa_signature_parse_der` Parse a DER ECDSA signature.
+- `ecdsa_signature_serialize_der` Serialize an ECDSA signature in DER format.
+- `ecdsa_signature_serialize_compact` Serialize an ECDSA signature in compact (64 byte) format.
+- `ecdsa_signature_normalize` Convert a signature to a normalized lower-S form.
+- `ec_seckey_verify` Verify an ECDSA secret key.
+- `ec_privkey_negate` Negates a private key in place.
+- `ec_pubkey_negate` Negates a public key in place.
+- `ec_privkey_tweak_add` Tweak a private key by adding tweak to it.
+- `ec_privkey_tweak_mul` Tweak a private key by multiplying it by a tweak.
+- `ec_pubkey_combine` Add a number of public keys together.
+
+The functions that require the context to be initialized to `SECP256K1_CONTEXT_VERIFY` are:
+- `ecdsa_verify` Verify an ECDSA signature.
+- `ec_pubkey_tweak_add` Tweak a public key by adding tweak times the generator to it.
+- `ec_pubkey_tweak_mul` Tweak a public key by multiplying it by a tweak value.
+
+The functions that require the context to be initialized as `SECP256K1_CONTEXT_SIGN` are:
+- `ecdsa_sign` Create an ECDSA signature.
+- `ec_pubkey_create` Compute the public key for a secret key.
+- `context_randomize` Updates the context randomization to protect against side-channel leakage.
+
+#### Set the context flag
 ```
 # Set verify flag
 flags = secpy256k1.lib.SECP256K1_CONTEXT_VERIFY
@@ -89,22 +117,22 @@ flags = secpy256k1.lib.SECP256K1_CONTEXT_SIGN
 flags = secpy256k1.lib.SECP256K1_CONTEXT_NONE
 ```
 
-Create a pointer to a `secp256k1_context` object from the context flag:
+#### Initialize the context object
 ```
 secp256k1_ctx = secpy256k1.context_create(flags)
 ```
 
-Clone a pointer to a `secp256k1_context` object:
+#### Clone the context object
 ```
 secp256k1_ctx_clone = secpy256k1.context_clone(secp256k1_ctx)
 ```
 
-Destroy a pointer to a `secp256k1_context` object:
+#### Destroy the context object
 ```
 secp256k1_ctx_destroy = secpy256k1.context_destroy(secp256k1_ctx)
 ```
-
-Update the context randomization to protect against side-channel leakage:
+#### Update context randomization to protect against side-channel leakage
+Call this function after `secpy256k1.context_create` or `secpy256k1.context_clone` and may call this repeatedly afterwards.
 ```
 import os
 seed32 = os.urandom(32)
@@ -210,5 +238,3 @@ Compute an ECDH secret in constant time:
 ```
 func_ret, ecdh_secret = secpy256k1.ecdh(ctx=secp256k1_ctx, pubkey=secp256k1_pubkey, privkey=priv_key)
 ```
-
-
