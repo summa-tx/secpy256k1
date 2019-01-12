@@ -415,7 +415,7 @@ class TestSecpy256k1(unittest.TestCase):
         pass
 
     @unittest.skip('TODO')
-    def test_valide_public_key(self):
+    def test_validate_public_key(self):
         pass
 
     @unittest.skip('TODO')
