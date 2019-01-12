@@ -131,9 +131,9 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
     utils.validate_public_key(pubkey)
 
     # Validate flags
-    if flags is lib.SECP256K1_EC_COMPRESSED:
+    if flags == lib.SECP256K1_EC_COMPRESSED:
         publen = 33
-    elif flags is lib.SECP256K1_EC_UNCOMPRESSED:
+    elif flags == lib.SECP256K1_EC_UNCOMPRESSED:
         publen = 65
     else:
         raise ValueError('Invalid serialized compression format flag.')
@@ -246,9 +246,13 @@ def ecdsa_signature_serialize_der(ctx, sig, outputlen=74):
     # Pointer to a length integer
     outputlen = ffi.new('size_t *', outputlen)
 
+    res = lib.secp256k1_ecdsa_signature_serialize_der(
+        ctx, output, outputlen, sig)
+
+    output_length = int(ffi.cast('uint32_t', outputlen[0]))
+
     # Serialize an ECDSA signature in DER format
-    return (lib.secp256k1_ecdsa_signature_serialize_der(
-        ctx, output, outputlen, sig), output, outputlen)
+    return (res, output[0:output_length], outputlen)
 
 
 def ecdsa_signature_serialize_compact(ctx, sig):
@@ -380,7 +384,8 @@ def ecdsa_signature_normalize(ctx, sigout, sigin):
             sigout)
 
 
-def ecdsa_sign(ctx, msg32, seckey, noncefp, ndata):
+def ecdsa_sign(
+        ctx, msg32, seckey, noncefp=ffi.NULL, ndata=ffi.NULL):
     '''Create an ECDSA signature.
     The created signature is always in lower-S form. See
     secp256k1_ecdsa_signature_normalize for more details.

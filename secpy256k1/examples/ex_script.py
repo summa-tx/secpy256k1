@@ -1,74 +1,75 @@
 import os
 import secpy256k1
-pubkey = bytes.fromhex('0250863ad64a87ae8a2fe83c1af1a8403cb53f53e486d8511dad8a04887e5b2352')   # noqa: E501
-uncomp_pubkey = bytes.fromhex('0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8')    # noqa: E501
-tweak = bytes.fromhex('aca0338ffd29daeb82021b179348db68ad0740d66698264d2e69e1ae9ab007f1')  # noqa: E501
 
-flags = secpy256k1.lib.SECP256K1_CONTEXT_VERIFY
-secp256k1_ctx = secpy256k1.context_create(flags)
-secp256k1_ctx_clone = secpy256k1.context_clone(secp256k1_ctx)
-secp256k1_pubkey_tuple = secpy256k1.ec_pubkey_parse(secp256k1_ctx, pubkey)
+SECP256K1_CONTEXT_SIGN = secpy256k1.lib.SECP256K1_CONTEXT_SIGN
+SECP256K1_CONTEXT_VERIFY = secpy256k1.lib.SECP256K1_CONTEXT_VERIFY
+SECP256K1_EC_COMPRESSED = secpy256k1.lib.SECP256K1_EC_COMPRESSED
 
-compression_flag = secpy256k1.lib.SECP256K1_EC_COMPRESSED
+privkey = b'\x32' * 32
+pubkey = bytes.fromhex('0290999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f0555')   # noqa: E501
+uncomp_pubkey = bytes.fromhex('0490999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f05553a9d6d07e79ae2fbe0bc0b20c93e1f8e20d74b8a0a7028e32d9a6808b6c38df4')    # noqa: E501
+tweak = b'\x66' * 32  # noqa: E501
+msg = bytes.fromhex('deadbeef' * 8)
+
+verify_context = secpy256k1.context_create(SECP256K1_CONTEXT_VERIFY)
+sign_context = secpy256k1.context_create(SECP256K1_CONTEXT_SIGN)
+
+# try cloning to make sure it doesn't error
+secpy256k1.context_clone(verify_context)
+
+# parse the pubkey to a secpy pubkey tuple
+secp256k1_pubkey_tuple = secpy256k1.ec_pubkey_parse(verify_context, pubkey)
+
+# serialize the pubkey
 output_tuple = secpy256k1.ec_pubkey_serialize(
-        secp256k1_ctx,
-        secp256k1_pubkey_tuple[1],
-        compression_flag)
+    verify_context,
+    secp256k1_pubkey_tuple[1],
+    SECP256K1_EC_COMPRESSED)
 
-output_int = output_tuple[0]
-output = output_tuple[1]
-ouputlen = output_tuple[2]
-pubkey_ser = bytes(secpy256k1.ffi.buffer(output))
+ser_pub = output_tuple[1]
+pubkey_ser = bytes(secpy256k1.ffi.buffer(ser_pub))
+print('\n\npubkey_ser', pubkey_ser.hex())
 
-# Pubkey Tweak Add
-pubkey_tweak_tuple = secpy256k1.ec_pubkey_tweak_add(
-        secp256k1_ctx,
-        secp256k1_pubkey_tuple[1],
-        tweak)
-pubkey_tweak = pubkey_tweak_tuple[1]
+# check pubkey tweak function
+tweaked_pubkey_tuple = secpy256k1.ec_pubkey_tweak_add(
+    verify_context,
+    secpy256k1.ec_pubkey_parse(verify_context, pubkey)[1],
+    tweak)
+tweaked_pubkey = tweaked_pubkey_tuple[1]
 output_tweak_tuple = secpy256k1.ec_pubkey_serialize(
-        secp256k1_ctx,
-        secp256k1_pubkey_tuple[1],
-        compression_flag)
-output_tweak_int = output_tweak_tuple[0]
-output_tweak = output_tweak_tuple[1]
-ouputlen_tweak = output_tweak_tuple[2]
-pubkey_tweak_ser = bytes(secpy256k1.ffi.buffer(output_tweak))
-pubkey_tweak_hex = pubkey_tweak_ser.hex()
+    verify_context,
+    secpy256k1.ec_pubkey_parse(verify_context, pubkey)[1],
+    SECP256K1_EC_COMPRESSED)
+tweaked_pubkey_chars = output_tweak_tuple[1]
+print('\n\ntweaked_pubkey',
+      bytes(secpy256k1.ffi.buffer(tweaked_pubkey_chars)).hex())
+
+sign_tuple = secpy256k1.ecdsa_sign(
+    sign_context, msg, privkey)
+result = sign_tuple[0]
+signature = sign_tuple[1]
+
+print('\n\nsign', bytes(secpy256k1.ffi.buffer(signature)).hex())
 
 
-flags = secpy256k1.lib.SECP256K1_CONTEXT_SIGN
-secp256k1_ctx = secpy256k1.context_create(flags)
-seckey = os.urandom(32)
-msg = os.urandom(32)
-noncefp = secpy256k1.ffi.NULL
-ndata = secpy256k1.ffi.NULL
-sign_tuple = secpy256k1.ecdsa_sign(secp256k1_ctx, msg, seckey, noncefp, ndata)
-sign = sign_tuple[1]
+der_sig = secpy256k1.ecdsa_signature_serialize_der(
+    sign_context, signature)[1]
+
+print('\n\ndersig',
+      bytes(secpy256k1.ffi.buffer(der_sig)).hex())
 
 # invalid sig but function still works
-flags = secpy256k1.lib.SECP256K1_CONTEXT_VERIFY
-secp256k1_ctx = secpy256k1.context_create(flags)
-secpy256k1.ecdsa_verify(secp256k1_ctx, sign, msg, secp256k1_pubkey_tuple[1])
+print('\n\necdsa_verify', secpy256k1.ecdsa_verify(
+    verify_context, signature, msg, secp256k1_pubkey_tuple[1]))
 
-sig = bytes.fromhex('483045022100e222a0a6816475d85ad28fbeb66e97c931081076dc9655da3afc6c1d81b43f9802204681f9ea9d52a31c9c47cf78b71410ecae6188d7c31495f5f1adfe0df5864a7401')   # noqa: E501
+
+sig = bytes.fromhex('3045022100a9e1adada9644225f11ed152d6ba81c52f594efc9e8fd35c636926320bb2d77402201c39cf35e5e898a52c6d50e75047f18c939783e70cec8df2e7d1d32b446ef3fd')   # noqa: E501
 ecdsa_parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_der(
-    secp256k1_ctx, sig)
+    verify_context, sig)
 secp256k1_sig = ecdsa_parsed_sig_tuple[1]
+print('\n\nsecpy256k1_sig', bytes(secpy256k1.ffi.buffer(secp256k1_sig)).hex())
 
-ecdsa_sig_ser_tuple = secpy256k1.ecdsa_signature_serialize_der(
-    secp256k1_ctx, secp256k1_sig)
-ecdsa_sig_ser_int = ecdsa_sig_ser_tuple[0]
-ecdsa_sig_ser_output = ecdsa_sig_ser_tuple[1]
-ecdsa_sig_ser_outputlen = ecdsa_sig_ser_tuple[2]
-bytes(secpy256k1.ffi.buffer(ecdsa_sig_ser_output)).hex()
-bytes(secpy256k1.ffi.buffer(ecdsa_sig_ser_outputlen)).hex()
-
-
-secpy256k1.ec_seckey_verify(secp256k1_ctx, os.urandom(32))
-flags = secpy256k1.lib.SECP256K1_CONTEXT_SIGN
-secp256k1_ctx = secpy256k1.context_create(flags)
-secpy256k1.ec_pubkey_create(secp256k1_ctx, os.urandom(32))
-secpy256k1.ec_privkey_negate(secp256k1_ctx, os.urandom(32))
-
-secpy256k1.ec_privkey_tweak_mul(secp256k1_ctx, os.urandom(32), tweak)
+# secpy256k1.ec_seckey_verify(verify_context, os.urandom(32))
+# secpy256k1.ec_pubkey_create(secp256k1_ctx, os.urandom(32))
+# secpy256k1.ec_privkey_negate(secp256k1_ctx, os.urandom(32))
+# secpy256k1.ec_privkey_tweak_mul(secp256k1_ctx, os.urandom(32), tweak)

@@ -27,11 +27,11 @@ def validate_cdata_type(value, type_str, err_msg, null_flag=False):
 def validate_bytes_type(value, byte_len, err_msg):
     '''Checks that the serialized value is a valid byte string.
     Args:
-        value       (bytes):        value to check
-        byte_len    (int):          valid byte length
-        err_msg     (str):          error message
+        value       (bytes):          value to check
+        byte_len  list(int):          valid byte lengths
+        err_msg       (str):          error message
     Returns:
-        (True):                     if value is valid, otherwise error
+        (True):                       if value is valid, otherwise error
     '''
     if not isinstance(value, bytes) or len(value) not in byte_len:
         raise ValueError(err_msg)
