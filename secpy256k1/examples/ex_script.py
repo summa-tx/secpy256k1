@@ -1,4 +1,3 @@
-import os
 import secpy256k1
 
 SECP256K1_CONTEXT_SIGN = secpy256k1.lib.SECP256K1_CONTEXT_SIGN
@@ -54,9 +53,13 @@ print('\n\nsign', bytes(secpy256k1.ffi.buffer(signature)).hex())
 
 der_sig = secpy256k1.ecdsa_signature_serialize_der(
     sign_context, signature)[1]
-
 print('\n\ndersig',
       bytes(secpy256k1.ffi.buffer(der_sig)).hex())
+
+compact_sig = secpy256k1.ecdsa_signature_serialize_compact(
+    sign_context, signature)[1]
+print('\n\ncompactsig',
+      bytes(secpy256k1.ffi.buffer(compact_sig)).hex())
 
 # invalid sig but function still works
 print('\n\necdsa_verify', secpy256k1.ecdsa_verify(

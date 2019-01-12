@@ -69,14 +69,14 @@ def scratch_space_destroy(scratch):
     pass
 
 
-def ec_pubkey_parse(ctx, input):
+def ec_pubkey_parse(ctx, ser_pub):
     '''Parse a variable-length public key into the pubkey object.
     This function supports parsing compressed (33 bytes, header byte 0x02 or
     0x03), uncompressed (65 bytes, header byte 0x04), or hybrid (65 bytes,
     header byte 0x06 or 0x07) format public keys.
     Args:
         ctx     (secp256k1_context*):   secp256k1 context object
-        input   (bytes):                pointer to a serialized public key
+        ser_pub   (bytes):                pointer to a serialized public key
     Returns:
         (int, secp256k1_pubkey*):       (1 if the public key was fully
                                         valid. 0 if the public key could
@@ -89,16 +89,16 @@ def ec_pubkey_parse(ctx, input):
     utils.validate_context(ctx)
 
     # Validate input
-    utils.validate_public_key_ser(input)
+    utils.validate_public_key_ser(ser_pub)
 
     # Length of the array pointed to by input
-    inputlen = len(input)
+    inputlen = len(ser_pub)
 
     # Pointer to a pubkey object. If 1 is returned, it is set to a parsed
     # version of input. If not, its value is undefined.
     pubkey = ffi.new('secp256k1_pubkey *')
 
-    return (lib.secp256k1_ec_pubkey_parse(ctx, pubkey, input, inputlen),
+    return (lib.secp256k1_ec_pubkey_parse(ctx, pubkey, ser_pub, inputlen),
             pubkey)
 
 
@@ -144,9 +144,12 @@ def ec_pubkey_serialize(ctx, pubkey, flags):
     # Pointer to an integer which is initially set to the size of the output,
     # and is overwritten with the written size
     outputlen = ffi.new('size_t *', publen)
+    output_length = int(ffi.cast('uint32_t', outputlen[0]))
 
     return (lib.secp256k1_ec_pubkey_serialize(
-        ctx, output, outputlen, pubkey, flags), output, outputlen)
+        ctx, output, outputlen, pubkey, flags),
+        output[0:output_length],
+        outputlen)
 
 
 def ecdsa_signature_parse_compact(ctx, input64):
@@ -180,7 +183,7 @@ def ecdsa_signature_parse_compact(ctx, input64):
             sig)
 
 
-def ecdsa_signature_parse_der(ctx, input):
+def ecdsa_signature_parse_der(ctx, ser_sig):
     '''Parse a DER ECDSA signature.
 
     This function will accept any valid DER encoded signature, even if the
@@ -192,7 +195,7 @@ def ecdsa_signature_parse_der(ctx, input):
 
     Args:
         ctx     (secp256k1_context*):       a secp256k1 context object
-        input   (bytes):                    a pointer to the signature to be
+        ser_sig   (bytes):                    a pointer to the signature to be
                                             parsed
     Returns:
         (int, secp256k1_ecdsa_signature*):  (1 when the signature could be
@@ -203,17 +206,18 @@ def ecdsa_signature_parse_der(ctx, input):
     utils.validate_context(ctx)
 
     # Validate signature
-    utils.validate_signature_ser(input)
+    utils.validate_signature_ser(ser_sig)
 
     # Length of the array pointed to be input
-    inputlen = len(input)
+    inputlen = len(ser_sig)
 
     # Pointer to a signature object
     sig = ffi.new('secp256k1_ecdsa_signature *')
 
     # Parse a DER ECDSA signature
-    return (lib.secp256k1_ecdsa_signature_parse_der(ctx, sig, input, inputlen),
-            sig)
+    return (
+        lib.secp256k1_ecdsa_signature_parse_der(ctx, sig, ser_sig, inputlen),
+        sig)
 
 
 def ecdsa_signature_serialize_der(ctx, sig, outputlen=74):
@@ -276,8 +280,9 @@ def ecdsa_signature_serialize_compact(ctx, sig):
     # Pointer to a 64-byte array to store the compact serialization
     output64 = ffi.new('unsigned char[]', 64)
 
-    return (lib.secp256k1_ecdsa_signature_serialize_compact(
-        ctx, output64, sig), output64)
+    return (
+        lib.secp256k1_ecdsa_signature_serialize_compact(ctx, output64, sig),
+        output64)
 
 
 def ecdsa_verify(ctx, sig, msg32, pubkey):

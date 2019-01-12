@@ -10,9 +10,15 @@ class TestSecpy256k1(unittest.TestCase):
             secpy256k1.lib.SECP256K1_CONTEXT_SIGN,
             secpy256k1.lib.SECP256K1_CONTEXT_NONE
         ]
-        self.pubkey = bytes.fromhex('0250863ad64a87ae8a2fe83c1af1a8403cb53f53e486d8511dad8a04887e5b2352')   # noqa: E501
-        self.uncomp_pubkey = bytes.fromhex('0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8')    # noqa: E501
-        self.tweak = bytes.fromhex('aca0338ffd29daeb82021b179348db68ad0740d66698264d2e69e1ae9ab007f1')  # noqa: E501
+
+        self.privkey = b'\x32' * 32
+        self.pubkey = bytes.fromhex('0290999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f0555')  # noqa: E501
+        self.uncomp_pubkey = bytes.fromhex('0490999dbbf43034bffb1dd53eac1eb4c33a4ea1c4f48ba585cfde3830840f05553a9d6d07e79ae2fbe0bc0b20c93e1f8e20d74b8a0a7028e32d9a6808b6c38df4')  # noqa: E501
+        self.msg = bytes.fromhex('deadbeef' * 8)
+        self.der_sig = bytes.fromhex('3045022100a9e1adada9644225f11ed152d6ba81c52f594efc9e8fd35c636926320bb2d77402201c39cf35e5e898a52c6d50e75047f18c939783e70cec8df2e7d1d32b446ef3fd')  # noqa: E501
+        self.compact_sig = bytes.fromhex('a9e1adada9644225f11ed152d6ba81c52f594efc9e8fd35c636926320bb2d7741c39cf35e5e898a52c6d50e75047f18c939783e70cec8df2e7d1d32b446ef3fd')  # noqa: E501
+        self.buffer_sig = bytes.fromhex('74d7b20b322669635cd38f9efc4e592fc581bad652d11ef1254264a9adade1a9fdf36e442bd3d1e7f28dec0ce78397938cf14750e7506d2ca598e8e535cf391c')  # noqa: E501
+        self.tweak = b'\x66' * 32
 
     def test_secp256k1_create_context(self):
 
@@ -193,41 +199,133 @@ class TestSecpy256k1(unittest.TestCase):
             'Invalid pubkey. Must be 33- or 65-bytes.',
             str(err.exception))
 
-    @unittest.skip('TODO')
     def test_ecdsa_signature_parse_compact(self):
-        pass
+        verify_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
 
-    @unittest.skip('TODO')
+        parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_compact(
+            verify_context,
+            self.compact_sig)
+
+        parsed_sig = bytes(secpy256k1.ffi.buffer(parsed_sig_tuple[1]))
+
+        self.assertEqual(parsed_sig_tuple[0], 1)
+        self.assertEqual(parsed_sig, self.buffer_sig)
+
     def test_ecdsa_signature_parse_der(self):
-        pass
+        verify_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
 
-    @unittest.skip('TODO')
+        parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_der(
+            verify_context,
+            self.der_sig)
+
+        parsed_sig = bytes(secpy256k1.ffi.buffer(parsed_sig_tuple[1]))
+
+        self.assertEqual(parsed_sig_tuple[0], 1)
+        self.assertEqual(parsed_sig, self.buffer_sig)
+
     def test_ecdsa_signature_serialize_der(self):
-        pass
+        verify_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
+        sign_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_SIGN)
 
-    @unittest.skip('TODO')
+        parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_der(
+            verify_context,
+            self.der_sig)
+
+        der_sig_tuple = secpy256k1.ecdsa_signature_serialize_der(
+            sign_context,
+            parsed_sig_tuple[1])
+
+        der_sig = bytes(secpy256k1.ffi.buffer(der_sig_tuple[1]))
+
+        self.assertEqual(der_sig_tuple[0], 1)
+        self.assertEqual(der_sig, self.der_sig)
+
     def test_ecdsa_signature_serialize_compact(self):
-        pass
+        verify_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
+        sign_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_SIGN)
 
-    @unittest.skip('TODO')
+        parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_compact(
+            verify_context,
+            self.compact_sig)
+
+        compact_sig_tuple = secpy256k1.ecdsa_signature_serialize_compact(
+            sign_context,
+            parsed_sig_tuple[1])
+
+        compact_sig = bytes(secpy256k1.ffi.buffer(compact_sig_tuple[1]))
+
+        self.assertEqual(compact_sig_tuple[0], 1)
+        self.assertEqual(compact_sig, self.compact_sig)
+
     def test_ecdsa_verify(self):
-        pass
+        verify_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
+
+        parsed_sig_tuple = secpy256k1.ecdsa_signature_parse_compact(
+            verify_context,
+            self.compact_sig)
+
+        secp256k1_pubkey_tuple = secpy256k1.ec_pubkey_parse(
+            verify_context,
+            self.pubkey)
+
+        verify_res = secpy256k1.ecdsa_verify(
+            verify_context,
+            parsed_sig_tuple[1],
+            self.msg,
+            secp256k1_pubkey_tuple[1])
+
+        self.assertEqual(verify_res, 1)
 
     @unittest.skip('TODO')
     def test_ecdsa_signature_normalize(self):
         pass
 
-    @unittest.skip('TODO')
     def test_ecdsa_sign(self):
-        pass
+        sign_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_SIGN)
+        sign_tuple = secpy256k1.ecdsa_sign(
+            sign_context,
+            self.msg,
+            self.privkey)
+        buffer_sig = bytes(secpy256k1.ffi.buffer(sign_tuple[1]))
 
-    @unittest.skip('TODO')
+        self.assertEqual(sign_tuple[0], 1)
+        self.assertEqual(buffer_sig, self.buffer_sig)
+
     def test_ec_seckey_verify(self):
-        pass
+        sign_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_SIGN)
+        self.assertEqual(
+            secpy256k1.ec_seckey_verify(sign_context, self.privkey),
+            1)
+        self.assertEqual(
+            secpy256k1.ec_seckey_verify(sign_context, b'\x00' * 32),
+            0)
 
-    @unittest.skip('TODO')
     def test_ec_pubkey_create(self):
-        pass
+        sign_context = secpy256k1.context_create(
+            secpy256k1.lib.SECP256K1_CONTEXT_SIGN)
+
+        pubkey_tuple = secpy256k1.ec_pubkey_create(
+            sign_context,
+            self.privkey)
+
+        pubkey_compressed_ser = secpy256k1.ec_pubkey_serialize(
+            sign_context,
+            pubkey_tuple[1],
+            secpy256k1.lib.SECP256K1_EC_COMPRESSED)
+
+        pubkey = bytes(secpy256k1.ffi.buffer(pubkey_compressed_ser[1]))
+
+        self.assertEqual(pubkey_tuple[0], 1)
+        self.assertEqual(pubkey, self.pubkey)
 
     @unittest.skip('TODO')
     def test_ec_privkey_negate(self):
