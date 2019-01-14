@@ -1,4 +1,9 @@
+import hashlib
 from _secpy256k1 import ffi
+
+
+def sha256(msg: bytes) -> bytes:
+    return hashlib.sha256(msg).digest()
 
 
 def validate_cdata_type(value, type_str, err_msg, null_flag=False):
