@@ -74,6 +74,9 @@ def verify_hash(
         digest: bytes) -> bool:
     '''
     Verifies a signature on a specific hash
+
+    NB: ECDSA is NOT SECURE unless the verifier calculates the hash
+
     Args:
         pubkey (bytes): the public key in compressed or uncompressed form
         sig    (bytes): the der encoded signature
