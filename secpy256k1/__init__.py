@@ -706,7 +706,7 @@ def ec_pubkey_combine(ctx, pubkeys):
     return (lib.secp256k1_ec_pubkey_combine(ctx, out, ins, n), out)
 
 
-# def ecdh(ctx, pubkey, privkey):
+def ecdh(ctx, pubkey, privkey):
     '''Compute an EC Diffie-Hellman secret in constant time
     Args:
         ctx     (secp256k1_context*):   pointer to a context object (cannot be
