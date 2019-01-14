@@ -107,7 +107,7 @@ def verify(
         msg: bytes,
         hash_func: Callable[[bytes], bytes] = utils.sha256) -> bool:
     '''
-    Verifies a signature on a specific hash
+    Verifies a signature on a message
     Args:
         pubkey (bytes): the public key in compressed or uncompressed form
         sig    (bytes): the der encoded signature
