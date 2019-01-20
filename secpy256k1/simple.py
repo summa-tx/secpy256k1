@@ -204,3 +204,136 @@ def compress_pubkey(pubkey: bytes) -> bytes:
         raise Exception('unknown exception -- pubkey ser failed')
 
     return bytes(secpy256k1.ffi.buffer(pubkey_ser_tuple[1]))
+
+
+def tweak_pubkey_add(
+        pubkey: bytes,
+        tweak: bytes,
+        compressed: bool = True) -> bytes:
+    '''
+    Tweaks a pubkey by adding a 32 byte tweak times the generator to it
+    Args:
+        pubkey (bytes): 32 byte pubkey
+        tweak   (bytes): 32 byte tweak
+    Returns:
+        (bytes): 32 byte tweaked pubkey
+    '''
+    ctx = get_verify_context()
+
+    if len(tweak) != 32:
+        raise ValueError('tweak must be 32 bytes')
+
+    pubkey_tuple = secpy256k1.ec_pubkey_parse(ctx, pubkey)
+
+    if pubkey_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey parse failed')
+
+    tweaked_tuple = secpy256k1.ec_pubkey_tweak_add(ctx, pubkey_tuple[1], tweak)
+
+    if tweaked_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey tweak add failed')
+
+    flag = (secpy256k1.lib.SECP256K1_EC_COMPRESSED
+            if compressed else
+            secpy256k1.lib.SECP256K1_EC_UNCOMPRESSED)
+    pubkey_ser_tuple = secpy256k1.ec_pubkey_serialize(
+        ctx,
+        tweaked_tuple[1],
+        flag)
+
+    if pubkey_ser_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey ser failed')
+
+    return bytes(secpy256k1.ffi.buffer(pubkey_ser_tuple[1]))
+
+
+def tweak_pubkey_mul(
+        pubkey: bytes,
+        tweak: bytes,
+        compressed: bool = True) -> bytes:
+    '''
+    Tweaks a pubkey by multiplying by a 32 byte tweak
+    Args:
+        pubkey (bytes): 32 byte pubkey
+        tweak   (bytes): 32 byte tweak
+    Returns:
+        (bytes): 32 byte tweaked pubkey
+    '''
+    ctx = get_verify_context()
+
+    if len(tweak) != 32:
+        raise ValueError('tweak must be 32 bytes')
+
+    pubkey_tuple = secpy256k1.ec_pubkey_parse(ctx, pubkey)
+
+    if pubkey_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey parse failed')
+
+    tweaked_tuple = secpy256k1.ec_pubkey_tweak_mul(ctx, pubkey_tuple[1], tweak)
+
+    if tweaked_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey tweak mul failed')
+
+    flag = (secpy256k1.lib.SECP256K1_EC_COMPRESSED
+            if compressed else
+            secpy256k1.lib.SECP256K1_EC_UNCOMPRESSED)
+    pubkey_ser_tuple = secpy256k1.ec_pubkey_serialize(
+        ctx,
+        tweaked_tuple[1],
+        flag)
+
+    if pubkey_ser_tuple[0] != 1:
+        raise Exception('unknown exception -- pubkey ser failed')
+
+    return bytes(secpy256k1.ffi.buffer(pubkey_ser_tuple[1]))
+
+
+def tweak_privkey_add(privkey: bytes, tweak: bytes):
+    '''
+    Tweaks a privkey by adding a 32-byte tweak to it
+    Args:
+        privkey (bytes): 32 byte privkey
+        tweak   (bytes): 32 byte tweak
+    Returns:
+        (bytes): 32 byte tweaked privkey
+    '''
+
+    ctx = get_sign_context()
+
+    if len(tweak) != 32:
+        raise ValueError('tweak must be 32 bytes')
+
+    if len(privkey) != 32:
+        raise ValueError('privkey must be 32 bytes')
+
+    tweak_tuple = secpy256k1.ec_privkey_tweak_add(ctx, privkey, tweak)
+
+    if tweak_tuple[0] != 1:
+        raise Exception('unknown exception -- privkey tweak failed')
+
+    return tweak_tuple[1]
+
+
+def tweak_privkey_mul(privkey: bytes, tweak: bytes):
+    '''
+    Tweaks a privkey by multiplying it by a 32-byte tweak
+    Args:
+        privkey (bytes): 32 byte privkey
+        tweak   (bytes): 32 byte tweak
+    Returns:
+        (bytes): 32 byte tweaked privkey
+    '''
+    ctx = get_sign_context()
+
+    if len(tweak) != 32:
+        raise ValueError('tweak must be 32 bytes')
+
+    if len(privkey) != 32:
+        raise ValueError('privkey must be 32 bytes')
+
+    tweak_tuple = secpy256k1.ec_privkey_tweak_mul(ctx, privkey, tweak)
+
+    if tweak_tuple[0] != 1:
+        raise Exception('unknown exception -- privkey tweak failed')
+
+    return tweak_tuple[1]
