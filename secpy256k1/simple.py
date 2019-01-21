@@ -288,7 +288,7 @@ def tweak_pubkey_mul(
     return bytes(secpy256k1.ffi.buffer(pubkey_ser_tuple[1]))
 
 
-def tweak_privkey_add(privkey: bytes, tweak: bytes):
+def tweak_privkey_add(privkey: bytes, tweak: bytes) -> bytes:
     '''
     Tweaks a privkey by adding a 32-byte tweak to it
     Args:
@@ -314,7 +314,7 @@ def tweak_privkey_add(privkey: bytes, tweak: bytes):
     return tweak_tuple[1]
 
 
-def tweak_privkey_mul(privkey: bytes, tweak: bytes):
+def tweak_privkey_mul(privkey: bytes, tweak: bytes) -> bytes:
     '''
     Tweaks a privkey by multiplying it by a 32-byte tweak
     Args:
