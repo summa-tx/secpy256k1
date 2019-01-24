@@ -14,7 +14,7 @@ From [libsecp256k1](https://github.com/bitcoin-core/secp256k1.git), make sure `l
 
 ```
 $ ./autogen.sh
-$ ./configure --enable-module-ecdh --enable-module-recovery --enable-experimental
+$ ./configure --enable-module-recovery --enable-experimental
 $ make
 $ sudo make install
 ```
@@ -44,7 +44,7 @@ $ cd ./secp256k1
 $ git submodule init
 $ git submodule update
 $ ./autogen.sh
-$ ./configure --enable-module-ecdh --enable-module-recovery --enable-experimental
+$ ./configure --enable-module-recovery --enable-experimental
 $ make
 $ sudo make install
 ```
@@ -73,7 +73,7 @@ $ pipenv run python ./secpy256k1/examples/ex_script.py
 
 ### Functions and Context Initialzation
 
-Barring `context_create`, the first argument to each function is a `secp256k1_context` object. The context object is initialized as `SECP256K1_CONTEXT_NONE`, `SECP256K1_CONTEXT_VERIFY`, or `SECP256K1_CONTEXT_SIGN`. 
+Barring `context_create`, the first argument to each function is a `secp256k1_context` object. The context object is initialized as `SECP256K1_CONTEXT_NONE`, `SECP256K1_CONTEXT_VERIFY`, or `SECP256K1_CONTEXT_SIGN`.
 
 For functions that are context agnostic, it is customary to use `SECP256K1_NONE`. These functions are:
 - `context_destroy` Destroy a secp256k1 context object.
@@ -230,11 +230,4 @@ func_ret, secp256k1_pubkey_tweaked = secpy256k1.ec_pubkey_tweak_mul(ctx=secp256k
 Tweak a private key by multiplying `tweak` it by a tweak value:
 ```
 func_ret, priv_key_tweaked = secpy256k1.ec_privkey_tweak_mul(ctx=secp256k1_ctx, seckey=priv_key, tweak=tweak)
-```
-
-### EC Diffie-Hellman
-
-Compute an ECDH secret in constant time:
-```
-func_ret, ecdh_secret = secpy256k1.ecdh(ctx=secp256k1_ctx, pubkey=secp256k1_pubkey, privkey=priv_key)
 ```
