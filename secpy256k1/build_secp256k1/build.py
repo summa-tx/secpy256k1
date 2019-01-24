@@ -7,8 +7,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 secp256k1_header = []
 secp256k1_header.append(
     os.path.join(dir_path, 'secp256k1_headers/secp256k1_cdef.h'))
-# secp256k1_header.append(
-#     os.path.join(dir_path, 'secp256k1_headers/secp256k1_ecdh_cdef.h'))
+
 
 for header in secp256k1_header:
     with open(header, 'rt') as h:
