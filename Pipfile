@@ -10,6 +10,7 @@ pytest = "==3.8.1"
 "flake8" = "==3.5.0"
 
 [dev-packages]
+twine = "*"
 
 [requires]
 python_version = "3.7"

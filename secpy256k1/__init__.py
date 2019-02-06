@@ -709,17 +709,17 @@ def ec_pubkey_combine(ctx, pubkeys):
 # def ecdh(ctx, pubkey, privkey):
 #     '''Compute an EC Diffie-Hellman secret in constant time
 #     Args:
-#         ctx     (secp256k1_context*):   pointer to a context object (cannot be
-#                                         NULL)
+#         ctx     (secp256k1_context*):   pointer to a context object (cannot
+#                                         be NULL)
 #         pubkey  (secp256k1_pubkey):     a pointer to a secp256k1_pubkey
 #                                         containing an initialized public key
-#         privkey (bytes):                a 32-byte scalar with which to multiply
-#                                         the point
+#         privkey (bytes):                a 32-byte scalar with which to
+#                                         multiply the point
 #     Returns:
 #         (int, bytes):                  (1: exponentiation was successful
 #                                         0: scalar was invalid (zero or
 #                                         overflow),
-#                                         a 32-byte array which will be populated
+#                                         a 32-byte array which will be filled
 #                                         by an ECDH secret computed from the
 #                                         point and scalar
 #     '''
