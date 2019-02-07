@@ -2,9 +2,13 @@ import setuptools
 
 setuptools.setup(
     name='riemann-secpy256k1',
-    version="0.2.2",
-    author="RJ Rybarczyk",
-    author_email="rj64@protonmail.com",
+    version="0.2.3",
+    author=[
+        "RJ Rybarczyk",
+        "James Prestwich",
+        "Jarrett Wheatley"
+    ],
+    author_email="team@summa.one",
     description="Python ffi bindings to secp256k1 bitcoin-core library.",
     url="https://github.com/summa-tx/secpy256k1",
     packages=setuptools.find_packages(),

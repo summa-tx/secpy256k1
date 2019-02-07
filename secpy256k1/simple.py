@@ -288,7 +288,7 @@ def tweak_pubkey_mul(
     return bytes(secpy256k1.ffi.buffer(pubkey_ser_tuple[1]))
 
 
-def tweak_privkey_add(privkey: bytes, tweak: bytes) -> bytes:
+def tweak_privkey_add(priv: bytes, tweak: bytes) -> bytes:
     '''
     Tweaks a privkey by adding a 32-byte tweak to it
     Args:
@@ -299,6 +299,9 @@ def tweak_privkey_add(privkey: bytes, tweak: bytes) -> bytes:
     '''
 
     ctx = get_sign_context()
+
+    # NB: this makes a copy so we don't mutate the thing passed in
+    privkey = priv.replace(b'\x00', b'\x00')
 
     if len(tweak) != 32:
         raise ValueError('tweak must be 32 bytes')
@@ -314,7 +317,7 @@ def tweak_privkey_add(privkey: bytes, tweak: bytes) -> bytes:
     return tweak_tuple[1]
 
 
-def tweak_privkey_mul(privkey: bytes, tweak: bytes) -> bytes:
+def tweak_privkey_mul(priv: bytes, tweak: bytes) -> bytes:
     '''
     Tweaks a privkey by multiplying it by a 32-byte tweak
     Args:
@@ -324,6 +327,9 @@ def tweak_privkey_mul(privkey: bytes, tweak: bytes) -> bytes:
         (bytes): 32 byte tweaked privkey
     '''
     ctx = get_sign_context()
+
+    # NB: this makes a copy so we don't mutate the thing passed in
+    privkey = priv.replace(b'\x00', b'\x00')
 
     if len(tweak) != 32:
         raise ValueError('tweak must be 32 bytes')
