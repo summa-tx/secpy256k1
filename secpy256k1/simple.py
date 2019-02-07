@@ -301,7 +301,7 @@ def tweak_privkey_add(priv: bytes, tweak: bytes) -> bytes:
     ctx = get_sign_context()
 
     # NB: this makes a copy so we don't mutate the thing passed in
-    privkey = priv.replace(b'\x00', b'\x00')
+    privkey = bytes([b for b in priv])
 
     if len(tweak) != 32:
         raise ValueError('tweak must be 32 bytes')
@@ -329,7 +329,7 @@ def tweak_privkey_mul(priv: bytes, tweak: bytes) -> bytes:
     ctx = get_sign_context()
 
     # NB: this makes a copy so we don't mutate the thing passed in
-    privkey = priv.replace(b'\x00', b'\x00')
+    privkey = bytes([b for b in priv])
 
     if len(tweak) != 32:
         raise ValueError('tweak must be 32 bytes')
