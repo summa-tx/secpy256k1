@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='riemann-secpy256k1',
-    version="0.2.4",
+    version='0.2.5',
     author=[
         "RJ Rybarczyk",
         "James Prestwich",
