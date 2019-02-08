@@ -32,7 +32,7 @@ def sign_hash(privkey: bytes, digest: bytes) -> bytes:
 
     ctx = get_sign_context()
 
-    if secpy256k1.ec_seckey_verify(privkey) != 1:
+    if secpy256k1.ec_seckey_verify(ctx, privkey) != 1:
         raise Exception('unknown exception -- seckey verify failed')
 
     sig_tuple = secpy256k1.ecdsa_sign(ctx, digest, privkey)
