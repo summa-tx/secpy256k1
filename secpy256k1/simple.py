@@ -18,7 +18,7 @@ def get_verify_context():
     return secpy256k1.context_create(secpy256k1.lib.SECP256K1_CONTEXT_VERIFY)
 
 
-def sign_hash(privkey: bytes, digest: bytes) -> bytes:
+def sign_hash(privkey: bytes, digest: bytes, compact: bool = False) -> bytes:
     '''
     Signs the digest of a message with the private key
     Args:
@@ -40,20 +40,26 @@ def sign_hash(privkey: bytes, digest: bytes) -> bytes:
     if sig_tuple[0] != 1:
         raise Exception('unknown exception -- sign failed')
 
-    der_sig_tuple = secpy256k1.ecdsa_signature_serialize_der(
-        ctx,
-        sig_tuple[1])
+    if not compact:
+        serialized_sig_tuple = secpy256k1.ecdsa_signature_serialize_der(
+            ctx,
+            sig_tuple[1])
+    else:
+        serialized_sig_tuple = secpy256k1.ecdsa_signature_serialize_compact(
+            ctx,
+            sig_tuple[1])
 
-    if der_sig_tuple[0] != 1:
+    if serialized_sig_tuple[0] != 1:
         raise Exception('unknown exception -- der ser failed')
 
-    return bytes(secpy256k1.ffi.buffer(der_sig_tuple[1]))
+    return bytes(secpy256k1.ffi.buffer(serialized_sig_tuple[1]))
 
 
 def sign(
         privkey: bytes,
         msg: bytes,
-        hash_func: Callable[[bytes], bytes] = utils.sha256) -> bytes:
+        hash_func: Callable[[bytes], bytes] = utils.sha256,
+        compact: bool = False) -> bytes:
     '''
     Signs the digest of a message with the private key
     Args:
@@ -65,7 +71,7 @@ def sign(
     '''
     msg_hash = hash_func(msg)
 
-    return sign_hash(privkey, msg_hash)
+    return sign_hash(privkey, msg_hash, compact)
 
 
 def verify_hash(
