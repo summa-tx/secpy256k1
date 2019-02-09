@@ -13,5 +13,5 @@ int secp256k1_ecdh(
   unsigned char *result,
   const secp256k1_pubkey *pubkey,
   const unsigned char *privkey);
-  // void *data,
-  // void *data);
+//  void *data,
+//  void *data);
